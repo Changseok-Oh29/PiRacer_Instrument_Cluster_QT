@@ -1,0 +1,45 @@
+
+name: Build on Raspberry Pi
+
+on:
+  push:
+    branches:
+      - main  # change to your branch name if needed
+
+jobs:
+  build:
+    name: Compile Qt App
+    runs-on: self-hosted  # default label for your Pi runner
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential \
+          qtbase5-dev \
+          qtchooser \
+          qt5-qmake \
+          qttools5-dev-tools \
+          g++ \
+          cmake \
+          rsync \
+          ssh \
+          qt6-base-dev=6.4.2+dfsg-10 \
+          qt6-tools-dev=6.4.2+dfsg-10 \
+          qt6-declarative-dev=6.4.2+dfsg-1 \
+          qml6-module-qtquick
+          qt6-tools-dev-tools \
+          qml6-module-qtquick-controls \
+          qml6-module-qtquick-layouts \
+          qml6-module-qtquick-window \
+          qt6-wayland \
+          qml6-module-qtqml-workerscript
+
+      - name: Build the project
+        run: |
+          cd untitled/build
+          cmake ..
+          make -j$(nproc)
