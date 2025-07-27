@@ -42,3 +42,4 @@ jobs:
           cd untitled/build
           cmake ..
           make -j$(nproc)
+        working-directory: ./untitled/build
