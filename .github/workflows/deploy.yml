@@ -41,4 +41,4 @@ jobs:
         run: |
           cmake ..
           make -j$(nproc)
-        working-directory: PiRacer_Instrument_Cluster_QT/untitled/build
+        working-directory: untitled/build
