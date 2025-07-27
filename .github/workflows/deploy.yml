@@ -39,7 +39,6 @@ jobs:
 
       - name: Build the project
         run: |
-          cd untitled/build
           cmake ..
           make -j$(nproc)
         working-directory: ./untitled/build
