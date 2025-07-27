@@ -37,6 +37,9 @@ jobs:
           qt6-wayland \
           qml6-module-qtqml-workerscript
 
+      - name: Create build directory
+        run: mkdir untitled/build
+
       - name: Build the project
         run: |
           cmake ..
