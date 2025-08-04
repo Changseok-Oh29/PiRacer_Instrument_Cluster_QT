@@ -80,3 +80,33 @@ CMakeLists.txt.user*
 .rcc/
 .uic/
 /build*/
+
+# Qt CMake build directories
+build-native/
+build-raspi/
+**/CMakeFiles/
+**/CMakeCache.txt
+**/cmake_install.cmake
+**/Makefile
+
+# Qt generated files
+**/*_autogen/
+**/*_qmltyperegistrations.cpp
+**/untitledprojectapp_qmltyperegistrations.cpp
+**/qmldir_build
+**/meta_types/
+**/qmltypes/
+
+# Generated executables
+UntitledProjectApp
+
+# Qt Resource compiler generated files
+**/qrc_*.cpp
+
+# IDE and temporary files
+.vscode/
+.idea/
+*.user
+*.user.*
+*.tmp
+*~
