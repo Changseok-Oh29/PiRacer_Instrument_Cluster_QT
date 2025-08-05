@@ -9,8 +9,8 @@ Window {
     height: mainScreen.height
 
     visible: true
-    // flags: Qt.FramelessWindowHint
-    // visibility: Window.FullScreen
+    flags: Qt.FramelessWindowHint
+    visibility: Window.FullScreen
     title: "UntitledProject"
 
 

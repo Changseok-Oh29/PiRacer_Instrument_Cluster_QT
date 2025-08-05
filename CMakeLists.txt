@@ -34,10 +34,11 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Disable QML cache generation for cross-compilation
+# QML settings for cross-compilation
 if(CMAKE_CROSSCOMPILING)
     set(QT_FEATURE_qml_jit OFF)
-    set(QT_NO_QMLCACHE_GENERATION ON)
+    # Don't disable cache generation completely - it's needed for type registration
+    # set(QT_NO_QMLCACHE_GENERATION ON)
 endif()
 
 # Find Qt6 components
@@ -86,6 +87,17 @@ endif()
 
 # Include QML modules
 include(${CMAKE_CURRENT_SOURCE_DIR}/qmlmodules)
+
+# Ensure QML modules are properly registered for cross-compilation
+if(CMAKE_CROSSCOMPILING)
+    # Force static QML plugin linking for cross-compilation
+    set_target_properties(UntitledProjectApp PROPERTIES
+        QT_QML_MODULE_URI_OVERRIDE "Main"
+    )
+    
+    # Ensure all QML modules are linked statically
+    qt6_import_qml_plugins(UntitledProjectApp)
+endif()
 
 # Installation settings for Raspberry Pi
 if(CMAKE_CROSSCOMPILING)

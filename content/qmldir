@@ -1,0 +1,13 @@
+module content
+typeinfo content.qmltypes
+prefer :/content/
+VectorIconExample 1.0 VectorIconExample.qml
+App 1.0 App.qml
+DashboardData 1.0 DashboardData.qml
+DashboardDataCAN 1.0 DashboardDataCAN.qml
+VectorIcon 1.0 VectorIcon.qml
+DashboardLogic 1.0 DashboardLogic.qml
+Screen01 1.0 Screen01.qml
+GearIndicator 1.0 GearIndicator.qml
+BatteryBar 1.0 BatteryBar.ui.qml
+WeatherData 1.0 WeatherData.qml
