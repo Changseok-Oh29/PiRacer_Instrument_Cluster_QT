@@ -10,7 +10,6 @@ qt_add_library(UntitledProject STATIC)
 qt6_add_qml_module(UntitledProject
     URI "UntitledProject"
     VERSION 1.0
-    NO_CACHEGEN
     NO_PLUGIN
     QML_FILES
         EventListSimulator.qml

@@ -2,7 +2,7 @@ import QmlProject
 
 Project {
     mainFile: "content/App.qml"
-    mainUiFile: "content/Screen01.ui.qml"
+    mainUiFile: "content/Screen01.qml"
 
     /* Include .qml, .js, and image files from current directory and subdirectories */
     QmlFiles {
@@ -86,7 +86,7 @@ Project {
     qt6Project: true
 
     /* List of plugin directories passed to QML runtime */
-    importPaths: [ "imports", "asset_imports" ]
+    importPaths: [ "imports", "asset_imports", ".", "content" ]
 
     /* Required for deployment */
     targetDirectory: "/opt/UntitledProject"
