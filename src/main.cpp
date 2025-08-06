@@ -5,11 +5,13 @@
 #include <QQmlApplicationEngine>
 #include <QDebug>
 #include <QQmlContext>
+#include <QProcess>
 
 #include "app_environment.h"
 #include "import_qml_components_plugins.h"
 #include "import_qml_plugins.h"
 #include "canreceiver.h"
+#include "dbusreceiver.h"
 
 int main(int argc, char *argv[])
 {
@@ -17,13 +19,29 @@ int main(int argc, char *argv[])
 
     QGuiApplication app(argc, argv);
 
+    // run python
+    QString pythonPath = "python3"; // Adjust for Windows: \venv\Scripts\python.exe
+    QString scriptPath = QCoreApplication::applicationDirPath() + "/rc_example.py";
+    QProcess *pythonProcess = new QProcess(&app);
+    pythonProcess->start(pythonPath, QStringList() << scriptPath);
+
+    if (!pythonProcess->waitForStarted(3000)) {
+        qWarning("Failed to start Python joystick process");
+    }
+
     // Create CAN receiver instance
     CanReceiver canReceiver;
+    
+    // Create DBus receiver instance
+    DBusReceiver dbusReceiver;
     
     QQmlApplicationEngine engine;
     
     // Register CAN receiver with QML context
     engine.rootContext()->setContextProperty("canReceiver", &canReceiver);
+    
+    // Register DBus receiver with QML context
+    engine.rootContext()->setContextProperty("dbusReceiver", &dbusReceiver);
     
     // For static builds, just add the basic resource paths
     engine.addImportPath("qrc:/");

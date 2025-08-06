@@ -42,13 +42,15 @@ if(CMAKE_CROSSCOMPILING)
 endif()
 
 # Find Qt6 components
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml Quick QuickControls2)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml Quick QuickControls2 DBus)
 
 # Create the executable
 qt_add_executable(UntitledProjectApp 
     src/main.cpp
     src/canreceiver.cpp
     src/canreceiver.h
+    src/dbusreceiver.cpp
+    src/dbusreceiver.h
 )
 
 # Add Qt6 policies for better compatibility (commented out for compatibility)
@@ -68,6 +70,7 @@ target_link_libraries(UntitledProjectApp PRIVATE
     Qt6::Quick
     Qt6::Qml
     Qt6::QuickControls2
+    Qt6::DBus
 )
 
 # Raspberry Pi 4 64-bit specific optimizations

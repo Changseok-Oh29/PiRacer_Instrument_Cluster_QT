@@ -18,55 +18,209 @@ Rectangle {
     height: Constants.height
     color: "#000000"
 
-    // Properties for dynamic values - now sourced from CAN data
-    property int currentSpeed: 50  // Default fallback value
-    property int currentRpm: 100   // Default fallback value
+    // Properties for dynamic values - sourced from CAN data
+    property int currentSpeed: 0
+    property int currentRpm: 0
     property string currentGear: "N"
-    property bool manualSpeedControl: false
     property bool canDataAvailable: dashboardDataCAN.canConnected
+    
+    // Animated properties for smooth transitions
+    property real animatedSpeed: 0
+    property real animatedRpm: 0
+    
+    // Smooth animation for speed changes
+    Behavior on animatedSpeed {
+        NumberAnimation {
+            duration: 300
+            easing.type: Easing.OutQuad
+        }
+    }
+    
+    // Smooth animation for RPM changes
+    Behavior on animatedRpm {
+        NumberAnimation {
+            duration: 400
+            easing.type: Easing.OutQuad
+        }
+    }
+    
+    // One Euro Filter properties for adaptive smoothing
+    property real minCutoff: 1.0      // Minimum cutoff frequency (Hz) - controls baseline smoothing
+    property real beta: 0.1           // Cutoff slope - how much filtering adapts to speed of change
+    property real derivateCutoff: 1.0 // Cutoff for derivative calculation
+    
+    // Speed filter state
+    property real speedFilterState: 0
+    property real speedDerivativeState: 0
+    property real speedPreviousTime: 0
+    
+    // RPM filter state  
+    property real rpmFilterState: 0
+    property real rpmDerivativeState: 0
+    property real rpmPreviousTime: 0
+    
+    // Low-pass filter function
+    function lowPassFilter(current, previous, alpha) {
+        return alpha * current + (1.0 - alpha) * previous
+    }
+    
+    // Calculate smoothing factor (alpha) from cutoff frequency and time delta
+    function calculateAlpha(cutoff, dt) {
+        if (dt <= 0) return 1.0
+        var tau = 1.0 / (2.0 * Math.PI * cutoff)
+        return 1.0 / (1.0 + tau / dt)
+    }
+    
+    // One Euro Filter for speed
+    function oneEuroFilterSpeed(value, timestamp) {
+        if (speedPreviousTime === 0) {
+            // First sample - initialize
+            speedFilterState = value
+            speedDerivativeState = 0
+            speedPreviousTime = timestamp
+            return value
+        }
+        
+        var dt = (timestamp - speedPreviousTime) / 1000.0 // Convert ms to seconds
+        speedPreviousTime = timestamp
+        
+        if (dt <= 0) return speedFilterState // Avoid division by zero
+        
+        // Calculate derivative (rate of change)
+        var derivative = (value - speedFilterState) / dt
+        
+        // Smooth the derivative
+        var derivativeAlpha = calculateAlpha(derivateCutoff, dt)
+        speedDerivativeState = lowPassFilter(derivative, speedDerivativeState, derivativeAlpha)
+        
+        // Calculate adaptive cutoff frequency
+        var adaptiveCutoff = minCutoff + beta * Math.abs(speedDerivativeState)
+        
+        // Apply main filter with adaptive cutoff
+        var alpha = calculateAlpha(adaptiveCutoff, dt)
+        speedFilterState = lowPassFilter(value, speedFilterState, alpha)
+        
+        // Debug logging
+        console.log("Speed OneEuro - Raw:", value, "Filtered:", speedFilterState.toFixed(1), "Derivative:", speedDerivativeState.toFixed(1), "Cutoff:", adaptiveCutoff.toFixed(2))
+        
+        return Math.round(speedFilterState)
+    }
+    
+    // One Euro Filter for RPM
+    function oneEuroFilterRpm(value, timestamp) {
+        if (rpmPreviousTime === 0) {
+            // First sample - initialize
+            rpmFilterState = value
+            rpmDerivativeState = 0
+            rpmPreviousTime = timestamp
+            return value
+        }
+        
+        var dt = (timestamp - rpmPreviousTime) / 1000.0 // Convert ms to seconds
+        rpmPreviousTime = timestamp
+        
+        if (dt <= 0) return rpmFilterState // Avoid division by zero
+        
+        // Calculate derivative (rate of change)
+        var derivative = (value - rpmFilterState) / dt
+        
+        // Smooth the derivative
+        var derivativeAlpha = calculateAlpha(derivateCutoff, dt)
+        rpmDerivativeState = lowPassFilter(derivative, rpmDerivativeState, derivativeAlpha)
+        
+        // Calculate adaptive cutoff frequency
+        var adaptiveCutoff = minCutoff + beta * Math.abs(rpmDerivativeState)
+        
+        // Apply main filter with adaptive cutoff
+        var alpha = calculateAlpha(adaptiveCutoff, dt)
+        rpmFilterState = lowPassFilter(value, rpmFilterState, alpha)
+        
+        // Debug logging
+        console.log("RPM OneEuro - Raw:", value, "Filtered:", rpmFilterState.toFixed(1), "Derivative:", rpmDerivativeState.toFixed(1), "Cutoff:", adaptiveCutoff.toFixed(2))
+        
+        var result = Math.round(rpmFilterState)
+        return result < 50 ? 0 : result  // Consider anything below 50 RPM as stopped
+    }
 
-    // Update speed and RPM when CAN data changes
+    // Timer to continuously sample CAN data regardless of value changes
+    Timer {
+        id: canDataTimer
+        interval: 100  // Sample every 100ms (10Hz)
+        running: dashboardDataCAN.canConnected
+        repeat: true
+        onTriggered: {
+            if (dashboardDataCAN.canConnected) {
+                var currentTime = Date.now()
+                
+                // Apply One Euro Filter to both speed and RPM
+                var newSmoothedSpeed = rectangle.oneEuroFilterSpeed(dashboardDataCAN.currentSpeed, currentTime)
+                var newSmoothedRpm = rectangle.oneEuroFilterRpm(dashboardDataCAN.currentRpm, currentTime)
+                
+                // Update our properties if the smoothed values changed
+                if (rectangle.currentSpeed !== newSmoothedSpeed) {
+                    rectangle.currentSpeed = newSmoothedSpeed
+                    rectangle.animatedSpeed = rectangle.currentSpeed  // Trigger smooth animation
+                }
+                
+                if (rectangle.currentRpm !== newSmoothedRpm) {
+                    rectangle.currentRpm = newSmoothedRpm
+                    rectangle.animatedRpm = rectangle.currentRpm  // Trigger smooth animation
+                }
+                
+                console.log("CAN sample - Raw Speed:", dashboardDataCAN.currentSpeed, "Filtered:", rectangle.currentSpeed, "Raw RPM:", dashboardDataCAN.currentRpm, "Filtered:", rectangle.currentRpm)
+            }
+        }
+    }
+
+    // Handle CAN connection status changes
     Connections {
         target: dashboardDataCAN
-        function onCurrentSpeedChanged() {
-            if (dashboardDataCAN.canConnected) {
-                rectangle.currentSpeed = Math.round(dashboardDataCAN.currentSpeed)
-                console.log("Screen01 updated currentSpeed to:", rectangle.currentSpeed, "from CAN:", dashboardDataCAN.currentSpeed)
-            }
-        }
-        function onCurrentRpmChanged() {
-            if (dashboardDataCAN.canConnected) {
-                rectangle.currentRpm = Math.round(dashboardDataCAN.currentRpm)
-                console.log("Screen01 updated currentRpm to:", rectangle.currentRpm, "from CAN:", dashboardDataCAN.currentRpm)
-            }
-        }
         function onCanConnectedChanged() {
             console.log("Screen01 CAN connection changed to:", dashboardDataCAN.canConnected)
             if (dashboardDataCAN.canConnected) {
-                rectangle.currentSpeed = Math.round(dashboardDataCAN.currentSpeed)
-                rectangle.currentRpm = Math.round(dashboardDataCAN.currentRpm)
-                console.log("Screen01 initialized from CAN - Speed:", rectangle.currentSpeed, "RPM:", rectangle.currentRpm)
+                // Reset One Euro Filter state when connecting
+                rectangle.speedFilterState = 0
+                rectangle.speedDerivativeState = 0
+                rectangle.speedPreviousTime = 0
+                rectangle.rpmFilterState = 0
+                rectangle.rpmDerivativeState = 0
+                rectangle.rpmPreviousTime = 0
+                // Timer will start automatically due to running: binding
+                console.log("Screen01 CAN connected - reset One Euro Filter state")
+            } else {
+                // Clear everything when disconnected
+                rectangle.speedFilterState = 0
+                rectangle.speedDerivativeState = 0
+                rectangle.speedPreviousTime = 0
+                rectangle.rpmFilterState = 0
+                rectangle.rpmDerivativeState = 0
+                rectangle.rpmPreviousTime = 0
+                rectangle.currentSpeed = 0
+                rectangle.currentRpm = 0
+                rectangle.animatedSpeed = 0
+                rectangle.animatedRpm = 0
+                console.log("Screen01 CAN disconnected - cleared all data")
             }
         }
     }
 
     // Debug the binding
-    onCurrentSpeedChanged: console.log("Screen01 currentSpeed changed to:", currentSpeed, "CAN connected:", dashboardDataCAN.canConnected, "CAN speed:", dashboardDataCAN.currentSpeed)
-    onCurrentRpmChanged: console.log("Screen01 currentRpm changed to:", currentRpm, "CAN connected:", dashboardDataCAN.canConnected, "CAN RPM:", dashboardDataCAN.currentRpm)
+    onCurrentSpeedChanged: console.log("Screen01 currentSpeed changed to:", currentSpeed, "(smoothed)", "CAN connected:", dashboardDataCAN.canConnected, "Raw CAN speed:", dashboardDataCAN.currentSpeed)
+    onCurrentRpmChanged: console.log("Screen01 currentRpm changed to:", currentRpm, "(smoothed)", "CAN connected:", dashboardDataCAN.canConnected, "Raw CAN RPM:", dashboardDataCAN.currentRpm)
     onCanDataAvailableChanged: console.log("Screen01 canDataAvailable changed to:", canDataAvailable)
 
-    // Debug timer to check binding status
+    // Debug timer to check binding status and One Euro Filter state
     Timer {
         interval: 2000
         running: true
         repeat: true
         onTriggered: {
-            console.log("DEBUG - Screen01 binding check:")
+            console.log("DEBUG - Screen01 One Euro Filter and animation status:")
             console.log("  dashboardDataCAN.canConnected:", dashboardDataCAN.canConnected)
-            console.log("  dashboardDataCAN.currentSpeed:", dashboardDataCAN.currentSpeed)
-            console.log("  dashboardDataCAN.currentRpm:", dashboardDataCAN.currentRpm)
-            console.log("  rectangle.currentSpeed:", rectangle.currentSpeed)
-            console.log("  rectangle.currentRpm:", rectangle.currentRpm)
+            console.log("  Raw CAN Speed:", dashboardDataCAN.currentSpeed, "Filtered:", rectangle.currentSpeed, "Animated:", Math.round(rectangle.animatedSpeed))
+            console.log("  Raw CAN RPM:", dashboardDataCAN.currentRpm, "Filtered:", rectangle.currentRpm, "Animated:", Math.round(rectangle.animatedRpm))
+            console.log("  Speed filter state:", rectangle.speedFilterState.toFixed(1), "derivative:", rectangle.speedDerivativeState.toFixed(1))
+            console.log("  RPM filter state:", rectangle.rpmFilterState.toFixed(1), "derivative:", rectangle.rpmDerivativeState.toFixed(1))
         }
     }
 
@@ -78,54 +232,6 @@ Rectangle {
     // CAN data component for real vehicle data
     DashboardDataCAN {
         id: dashboardDataCAN
-    }
-
-    // Speed limits based on gear
-    property var gearSpeedLimits: {
-        "P": { min: 0, max: 0 },
-        "R": { min: 0, max: 15 },
-        "N": { min: 0, max: 0 },
-        "D": { min: 0, max: 120 },
-        "S": { min: 0, max: 180 }
-    }
-
-    // RPM limits based on gear and speed
-    function calculateRpm(speed, gear) {
-        if (gear === "P" || gear === "N") return Math.random() * 800 + 600; // Idle RPM
-        if (gear === "R") return speed * 50 + Math.random() * 200 + 800;
-        return speed * 25 + Math.random() * 500 + 1000;
-    }
-
-    // Fallback data simulator (only runs when CAN data is not available)
-    Timer {
-        id: dataSimulator
-        interval: 2000 // Update every 2 seconds
-        running: !dashboardDataCAN.canConnected // Only run when CAN is not connected
-        repeat: true
-
-        onTriggered: {
-            // Only auto-update if not in manual control mode and CAN is not connected
-            if (!rectangle.manualSpeedControl && !dashboardDataCAN.canConnected) {
-                var gear = rectangle.currentGear;
-                var limits = gearSpeedLimits[gear];
-
-                // Generate random speed within gear limits
-                if (limits.max > 0) {
-                    currentSpeed = Math.floor(Math.random() * (limits.max - limits.min + 1)) + limits.min;
-                } else {
-                    currentSpeed = 0;
-                }
-
-                // Calculate corresponding RPM
-                currentRpm = Math.floor(calculateRpm(currentSpeed, gear));
-            }
-        }
-
-        function triggerUpdate() {
-            dataSimulator.stop();
-            dataSimulator.start();
-            dataSimulator.triggered();
-        }
     }
 
     Image {
@@ -174,7 +280,7 @@ Rectangle {
             width: implicitWidth
             height: 88
             color: "#bebebe"
-            text: rectangle.currentSpeed.toString()
+            text: Math.round(rectangle.animatedSpeed).toString()
             font.pixelSize: 90
             anchors.verticalCenterOffset: -41
             anchors.horizontalCenterOffset: 0
@@ -182,10 +288,6 @@ Rectangle {
             font.bold: false
             font.family: "Arial"
             anchors.centerIn: parent
-            
-            Behavior on text {
-                PropertyAnimation { duration: 200 }
-            }
         }
 
         // Left arrow - decrease value
@@ -216,14 +318,8 @@ Rectangle {
                 onReleased: leftArrow.currentState = "hover"
                 
                 onClicked: {
-                    rectangle.manualSpeedControl = true;
-                    if (rectangle.currentSpeed > 1) {
-                        rectangle.currentSpeed -= 1;
-                    } else {
-                        rectangle.currentSpeed = 100; // Wrap to 100 when going below 1
-                    }
-                    // Update RPM based on new speed
-                    rectangle.currentRpm = Math.floor(rectangle.calculateRpm(rectangle.currentSpeed, rectangle.currentGear));
+                    // Manual control removed - data now comes from CAN bus only
+                    console.log("Manual speed control disabled - using CAN data only")
                 }
             }
         }
@@ -251,14 +347,8 @@ Rectangle {
                 onReleased: rightArrow.currentState = "hover"
                 
                 onClicked: {
-                    rectangle.manualSpeedControl = true;
-                    if (rectangle.currentSpeed < 100) {
-                        rectangle.currentSpeed += 1;
-                    } else {
-                        rectangle.currentSpeed = 1; // Wrap to 1 when going above 100
-                    }
-                    // Update RPM based on new speed
-                    rectangle.currentRpm = Math.floor(rectangle.calculateRpm(rectangle.currentSpeed, rectangle.currentGear));
+                    // Manual control removed - data now comes from CAN bus only
+                    console.log("Manual speed control disabled - using CAN data only")
                 }
             }
         }
@@ -384,15 +474,11 @@ Rectangle {
                 width: 121
                 height: 48
                 color: "#6b4339"
-                text: rectangle.currentRpm.toString() + " rpm"
+                text: Math.round(rectangle.animatedRpm).toString() + " rpm"
                 font.pixelSize: 32
                 lineHeight: 1
                 font.weight: Font.Medium
                 font.family: "Arial"
-
-                Behavior on text {
-                    PropertyAnimation { duration: 300 }
-                }
             }
         }
 
@@ -411,8 +497,7 @@ Rectangle {
             // Connect gear changes to update screen data
             onCurrentGearChanged: {
                 rectangle.currentGear = currentGear;
-                rectangle.manualSpeedControl = false; // Reset to automatic when gear changes
-                dataSimulator.triggerUpdate(); // Trigger immediate update when gear changes
+                console.log("Gear changed to:", currentGear, "- CAN data will provide speed/RPM")
             }
         }
 
