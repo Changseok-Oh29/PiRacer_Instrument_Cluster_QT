@@ -3,7 +3,8 @@
 
 #include <QObject>
 #include <QDBusInterface>
-#include <QTimer>
+#include <QJsonDocument>
+#include <QJsonObject>
 
 class DBusReceiver : public QObject
 {
@@ -21,12 +22,11 @@ signals:
     void batteryChanged();
 
 public slots:
-    void updateBattery();
+    void onDataReceived(const QString &dataJson);
 
 private:
     QDBusInterface *m_interface;
     double m_battery;
-    QTimer *pollTimer;
 };
 
 #endif // DBUSRECEIVER_H

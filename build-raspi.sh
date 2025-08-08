@@ -82,6 +82,7 @@ if [ $? -eq 0 ]; then
     echo -e "${YELLOW}To deploy to Raspberry Pi:${NC}"
     scp UntitledProjectApp seame2025@192.168.86.75:/home/seame2025/
     scp ../rc_example.py seame2025@192.168.86.75:/home/seame2025/
+    scp ../dbussender.py seame2025@192.168.86.75:/home/seame2025/
 else
     echo -e "${RED}Build failed!${NC}"
     exit 1

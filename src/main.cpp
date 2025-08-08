@@ -14,7 +14,6 @@
 #include "import_qml_plugins.h"
 #include "canreceiver.h"
 #include "dbusreceiver.h"
-#include "dbusservice.h"
 
 int main(int argc, char *argv[])
 {
@@ -27,28 +26,7 @@ int main(int argc, char *argv[])
 
     // Setup DBus service
     qDebug() << "[MAIN]" << QDateTime::currentDateTime().toString("hh:mm:ss.zzz")
-             << "🔧 Setting up DBus service...";
-             
-    QObject serviceObject;
-    DBusService dbusService(&serviceObject);
-    
-    if (!QDBusConnection::systemBus().registerService("org.team7.IC")) {
-        qWarning() << "[MAIN]" << QDateTime::currentDateTime().toString("hh:mm:ss.zzz")
-                   << "❌ Failed to register DBus service 'org.team7.IC'";
-        qWarning() << "[MAIN] DBus Error:" << QDBusConnection::systemBus().lastError().message();
-    } else {
-        qDebug() << "[MAIN]" << QDateTime::currentDateTime().toString("hh:mm:ss.zzz")
-                 << "✅ Successfully registered DBus service 'org.team7.IC'";
-    }
-    
-    if (!QDBusConnection::systemBus().registerObject("/CarInformation", &serviceObject)) {
-        qWarning() << "[MAIN]" << QDateTime::currentDateTime().toString("hh:mm:ss.zzz")
-                   << "❌ Failed to register DBus object '/CarInformation'";
-        qWarning() << "[MAIN] DBus Error:" << QDBusConnection::systemBus().lastError().message();
-    } else {
-        qDebug() << "[MAIN]" << QDateTime::currentDateTime().toString("hh:mm:ss.zzz")
-                 << "✅ Successfully registered DBus object '/CarInformation'";
-    }
+             << "🔧 Starting application...";
 
     // run python
     QString pythonPath = "python3"; // Adjust for Windows: \venv\Scripts\python.exe

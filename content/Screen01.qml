@@ -489,18 +489,6 @@ Rectangle {
 
         }
 
-        GearIndicator {
-            id: gearIndicator
-            x: 428
-            y: 280
-
-            // Connect gear changes to update screen data
-            onCurrentGearChanged: {
-                rectangle.currentGear = currentGear;
-                console.log("Gear changed to:", currentGear, "- CAN data will provide speed/RPM")
-            }
-        }
-
         // Up arrow - faster increment
 
         // Down arrow - faster decrement
