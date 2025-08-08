@@ -6,18 +6,32 @@
 #include <QDebug>
 #include <QQmlContext>
 #include <QProcess>
+#include <QDBusConnection>
 
 #include "app_environment.h"
 #include "import_qml_components_plugins.h"
 #include "import_qml_plugins.h"
 #include "canreceiver.h"
 #include "dbusreceiver.h"
+#include "dbusservice.h"
 
 int main(int argc, char *argv[])
 {
     set_qt_environment();
 
     QGuiApplication app(argc, argv);
+
+    // Setup DBus service
+    QObject serviceObject;
+    DBusService dbusService(&serviceObject);
+    
+    if (!QDBusConnection::systemBus().registerService("org.team7.IC")) {
+        qWarning("Failed to register DBus service");
+    }
+    
+    if (!QDBusConnection::systemBus().registerObject("/CarInformation", &serviceObject)) {
+        qWarning("Failed to register DBus object");
+    }
 
     // run python
     QString pythonPath = "python3"; // Adjust for Windows: \venv\Scripts\python.exe

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.18)
+cmake_minimum_required(VERSION 3.16)
 
 project(UntitledProjectApp LANGUAGES CXX)
 
@@ -51,6 +51,8 @@ qt_add_executable(UntitledProjectApp
     src/canreceiver.h
     src/dbusreceiver.cpp
     src/dbusreceiver.h
+    src/dbusservice.cpp
+    src/dbusservice.h
 )
 
 # Add Qt6 policies for better compatibility (commented out for compatibility)
