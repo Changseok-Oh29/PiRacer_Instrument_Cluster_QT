@@ -7,6 +7,7 @@
 #include <QQmlContext>
 #include <QProcess>
 #include <QDBusConnection>
+#include <QDateTime>
 
 #include "app_environment.h"
 #include "import_qml_components_plugins.h"
@@ -21,16 +22,32 @@ int main(int argc, char *argv[])
 
     QGuiApplication app(argc, argv);
 
+    qDebug() << "[MAIN]" << QDateTime::currentDateTime().toString("hh:mm:ss.zzz")
+             << "🚀 Starting PiRacer Instrument Cluster Application";
+
     // Setup DBus service
+    qDebug() << "[MAIN]" << QDateTime::currentDateTime().toString("hh:mm:ss.zzz")
+             << "🔧 Setting up DBus service...";
+             
     QObject serviceObject;
     DBusService dbusService(&serviceObject);
     
     if (!QDBusConnection::systemBus().registerService("org.team7.IC")) {
-        qWarning("Failed to register DBus service");
+        qWarning() << "[MAIN]" << QDateTime::currentDateTime().toString("hh:mm:ss.zzz")
+                   << "❌ Failed to register DBus service 'org.team7.IC'";
+        qWarning() << "[MAIN] DBus Error:" << QDBusConnection::systemBus().lastError().message();
+    } else {
+        qDebug() << "[MAIN]" << QDateTime::currentDateTime().toString("hh:mm:ss.zzz")
+                 << "✅ Successfully registered DBus service 'org.team7.IC'";
     }
     
     if (!QDBusConnection::systemBus().registerObject("/CarInformation", &serviceObject)) {
-        qWarning("Failed to register DBus object");
+        qWarning() << "[MAIN]" << QDateTime::currentDateTime().toString("hh:mm:ss.zzz")
+                   << "❌ Failed to register DBus object '/CarInformation'";
+        qWarning() << "[MAIN] DBus Error:" << QDBusConnection::systemBus().lastError().message();
+    } else {
+        qDebug() << "[MAIN]" << QDateTime::currentDateTime().toString("hh:mm:ss.zzz")
+                 << "✅ Successfully registered DBus object '/CarInformation'";
     }
 
     // run python
