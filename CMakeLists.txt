@@ -15,9 +15,9 @@ if(CMAKE_CROSSCOMPILING)
     set(CMAKE_CXX_COMPILER aarch64-linux-gnu-g++)
     
     # Set the sysroot (adjust path to your Raspberry Pi sysroot)
-    set(CMAKE_SYSROOT /home/jacob/sysroot)
-    set(CMAKE_FIND_ROOT_PATH /home/jacob/sysroot)
-    
+    set(CMAKE_SYSROOT /home/$(USER)/sysroot)
+    set(CMAKE_FIND_ROOT_PATH /home/$(USER)/sysroot)
+
     # Configure search paths for cross-compilation
     set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
     set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
@@ -25,7 +25,7 @@ if(CMAKE_CROSSCOMPILING)
     set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
     
     # Qt6 path for Raspberry Pi (adjust to your Qt6 installation for Pi)
-    set(CMAKE_PREFIX_PATH "/home/jacob/sysroot/usr/lib/aarch64-linux-gnu/cmake")
+    set(CMAKE_PREFIX_PATH "/home/$(USER)/sysroot/usr/lib/aarch64-linux-gnu/cmake")
 endif()
 
 # Standard CMake settings
