@@ -36,15 +36,14 @@ class CarInformationService(dbus.service.Object):
         bus_name = dbus.service.BusName("org.team7.IC", bus=dbus.SessionBus())
         dbus.service.Object.__init__(self, bus_name, "/CarInformation")
         self.battery_level = 0.0
+        self.current_ma = 0.0
         print(f"[SERVICE] {datetime.datetime.now().strftime('%H:%M:%S.%f')[:-3]} ✅ DBus service org.team7.IC started")
-        
+
     @dbus.service.method("org.team7.IC.Interface", in_signature='d', out_signature='')
     def setCurrent(self, current_ma):
         self.current_ma = float(current_ma)
         print(f"[SERVICE] current received: {self.current_ma:.1f}mA")
-        current_data = {"current_ma": self.current_ma}
-        json_data = json.dumps(current_data)
-        self.DataReceived(json_data)
+        self._emit_data_signal()
 
     @dbus.service.method("org.team7.IC.Interface", in_signature='d', out_signature='')
     def setBattery(self, battery_level):
@@ -52,17 +51,23 @@ class CarInformationService(dbus.service.Object):
         print(f"[SERVICE] {datetime.datetime.now().strftime('%H:%M:%S.%f')[:-3]} 🔋 Battery level received: {self.battery_level:.1f}%")
 
         # Emit signal for Qt to receive
-        battery_data = {
-            "battery_capacity": self.battery_level
-        }
-        json_data = json.dumps(battery_data)
-        print(f"[SERVICE] {datetime.datetime.now().strftime('%H:%M:%S.%f')[:-3]} 📤 Emitting DataReceived signal: {json_data}")
-        self.DataReceived(json_data)
+        self._emit_data_signal()
 
     @dbus.service.method("org.team7.IC.Interface", in_signature='', out_signature='d')
     def getBattery(self):
         print(f"[SERVICE] {datetime.datetime.now().strftime('%H:%M:%S.%f')[:-3]} 📊 Battery level requested: {self.battery_level:.1f}%")
         return self.battery_level
+
+    def _emit_data_signal(self):
+        """Emit signal with both battery and charging data"""
+        data = {
+            "battery_capacity": self.battery_level,
+            "charging_current": self.current_ma
+        }
+        json_data = json.dumps(data)
+        print(f"[TEST_SERVICE] {datetime.datetime.now().strftime('%H:%M:%S.%f')[:-3]} 📤 Emitting DataReceived signal: {json_data}")
+        self.DataReceived(json_data)
+
 
     @dbus.service.signal("org.team7.IC.Interface", signature='s')
     def DataReceived(self, data_json):
