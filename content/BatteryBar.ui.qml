@@ -10,11 +10,12 @@ Rectangle {
     
     property int batteryLevel: 100 // Battery level from 0-100
     property color batteryColor: "#77C000" // Default green color
+    property bool useRealData: true // Set to false to use demo animation
 
-    // Animation to cycle battery level from 100 to 0 and back to 100
+    // Animation to cycle battery level from 100 to 0 and back to 100 (for demo purposes)
     SequentialAnimation {
         id: batteryAnimation
-        running: true
+        running: !useRealData
         loops: Animation.Infinite
         
         NumberAnimation {

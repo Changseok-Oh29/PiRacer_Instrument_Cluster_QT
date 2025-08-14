@@ -13,6 +13,7 @@ qt6_add_qml_module(content
         App.qml
         DashboardData.qml
         DashboardDataCAN.qml
+        DashboardDataDBus.qml
         VectorIcon.qml
         DashboardLogic.qml
         Screen01.qml
