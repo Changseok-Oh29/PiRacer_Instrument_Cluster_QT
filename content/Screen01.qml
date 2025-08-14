@@ -24,6 +24,9 @@ Rectangle {
     property string currentGear: "N"
     property bool canDataAvailable: dashboardDataCAN.canConnected
     
+    // Battery data from DBus
+    property int currentBatteryLevel: Math.round(dashboardDataDBus.batteryLevel)
+    
     // Animated properties for smooth transitions
     property real animatedSpeed: 0
     property real animatedRpm: 0
@@ -208,6 +211,7 @@ Rectangle {
     onCurrentSpeedChanged: console.log("Screen01 currentSpeed changed to:", currentSpeed, "(smoothed)", "CAN connected:", dashboardDataCAN.canConnected, "Raw CAN speed:", dashboardDataCAN.currentSpeed)
     onCurrentRpmChanged: console.log("Screen01 currentRpm changed to:", currentRpm, "(smoothed)", "CAN connected:", dashboardDataCAN.canConnected, "Raw CAN RPM:", dashboardDataCAN.currentRpm)
     onCanDataAvailableChanged: console.log("Screen01 canDataAvailable changed to:", canDataAvailable)
+    onCurrentBatteryLevelChanged: console.log("Screen01 battery level changed to:", currentBatteryLevel + "%")
 
     // Debug timer to check binding status and One Euro Filter state
     Timer {
@@ -232,6 +236,11 @@ Rectangle {
     // CAN data component for real vehicle data
     DashboardDataCAN {
         id: dashboardDataCAN
+    }
+    
+    // DBus data component for battery and other PiRacer data
+    DashboardDataDBus {
+        id: dashboardDataDBus
     }
 
     Image {
@@ -486,7 +495,10 @@ Rectangle {
             id: frame13
             x: 210
             y: 333
-
+            
+            // Connect to real battery data
+            batteryLevel: rectangle.currentBatteryLevel
+            useRealData: true
         }
 
         // Up arrow - faster increment

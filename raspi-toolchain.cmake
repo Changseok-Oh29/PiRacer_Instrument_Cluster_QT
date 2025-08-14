@@ -10,10 +10,12 @@ set(CMAKE_CXX_COMPILER aarch64-linux-gnu-g++)
 
 # Specify the sysroot
 # Update this path to point to your Raspberry Pi sysroot
-set(CMAKE_SYSROOT /home/jacob/sysroot)
+# set(CMAKE_SYSROOT /home/jacob/sysroot)
+set(CMAKE_SYSROOT /home/seame/sysroot)
 
 # Set the search paths
-set(CMAKE_FIND_ROOT_PATH /home/jacob/sysroot)
+# set(CMAKE_FIND_ROOT_PATH /home/jacob/sysroot)
+set(CMAKE_FIND_ROOT_PATH /home/seame/sysroot)
 set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
 set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
 set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
@@ -21,16 +23,22 @@ set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
 
 # Qt6 installation path for Raspberry Pi
 # Update this to point to your Qt6 installation compiled for Raspberry Pi
-set(CMAKE_PREFIX_PATH "/home/jacob/sysroot/usr/lib/aarch64-linux-gnu/cmake")
-set(Qt6_DIR "/home/jacob/sysroot/usr/lib/aarch64-linux-gnu/cmake/Qt6")
+# set(CMAKE_PREFIX_PATH "/home/jacob/sysroot/usr/lib/aarch64-linux-gnu/cmake")
+# set(Qt6_DIR "/home/jacob/sysroot/usr/lib/aarch64-linux-gnu/cmake/Qt6")
+set(CMAKE_PREFIX_PATH "/home/seame/sysroot/usr/lib/aarch64-linux-gnu/cmake")
+set(Qt6_DIR "/home/seame/sysroot/usr/lib/aarch64-linux-gnu/cmake/Qt6")
 
 # Use Qt 6.4.2 host tools to match Pi version
-set(QT_HOST_PATH "/opt/Qt/6.4.2/gcc_64")
-set(QT_HOST_TOOLS_DIRECTORY "/opt/Qt/6.8.3/gcc_64/bin")
+# set(QT_HOST_PATH "/opt/Qt/6.4.2/gcc_64")
+# set(QT_HOST_TOOLS_DIRECTORY "/opt/Qt/6.8.3/gcc_64/bin")  # For other computer
+set(QT_HOST_PATH "/home/seame/Qt/6.4.2/gcc_64")
+set(QT_HOST_TOOLS_DIRECTORY "/home/seame/Qt/6.4.2/gcc_64/bin")
 
 # Raspberry Pi 4 64-bit specific settings
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mcpu=cortex-a72")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mcpu=cortex-a72")
+# set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mcpu=cortex-a72")
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mcpu=cortex-a72")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mcpu=cortex-a72 -D_GNU_SOURCE -DL_tmpnam=20")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mcpu=cortex-a72 -D_GNU_SOURCE -DL_tmpnam=20")
 
 # For other Pi models (32-bit), use these instead:
 # Pi 4 32-bit: -mcpu=cortex-a72 -mfpu=neon-fp-armv8 -mfloat-abi=hard
