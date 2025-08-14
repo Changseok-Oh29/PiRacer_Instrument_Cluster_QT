@@ -1,14 +1,14 @@
-# name: Build on Raspberry Pi
+# # name: Build on Raspberry Pi
 
 # on:
 #   push:
 #     branches:
-#       - main  # change to your branch name if needed
+#       - main # change to your branch name if needed
 
 # jobs:
 #   build:
 #     name: Compile Qt App
-#     runs-on: self-hosted  # default label for your Pi runner
+#     runs-on: ubuntu-24.04-arm # default label for your Pi runner
 
 #     steps:
 #       - name: Checkout source

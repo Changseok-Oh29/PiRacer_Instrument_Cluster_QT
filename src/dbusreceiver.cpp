@@ -5,7 +5,8 @@
 
 DBusReceiver::DBusReceiver(QObject *parent)
     : QObject(parent),
-      m_battery(0.0)
+      m_battery(0.0),
+      m_chargingCurrent(0.0)
 {
     qDebug() << "[DBusReceiver]" << QDateTime::currentDateTime().toString("hh:mm:ss.zzz")
              << "Initializing DBus connection...";
@@ -31,7 +32,6 @@ DBusReceiver::DBusReceiver(QObject *parent)
         "/CarInformation", 
         "org.team7.IC.Interface",
         "DataReceived",
-        "s",  // Add explicit signature
         this,
         SLOT(onDataReceived(QString))
     );
@@ -75,6 +75,21 @@ void DBusReceiver::onDataReceived(const QString &dataJson) {
                      << "New:" << newValue 
                      << "Change:" << (newValue - oldValue);
             emit batteryChanged();
+        }
+    }
+    
+    // Update charging current if present
+    if (data.contains("charging_current") && data["charging_current"].isDouble()) {
+        double newValue = data["charging_current"].toDouble();
+        double oldValue = m_chargingCurrent;
+        
+        if (!qFuzzyCompare(m_chargingCurrent, newValue)) {
+            m_chargingCurrent = newValue;
+            qDebug() << "[DBusReceiver]" << timestamp 
+                     << "⚡ Charging current updated - Old:" << oldValue 
+                     << "New:" << newValue << "mA"
+                     << "Change:" << (newValue - oldValue) << "mA";
+            emit chargingCurrentChanged();
         }
     }
 }

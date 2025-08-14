@@ -62,12 +62,21 @@ class CarInformationService(dbus.service.Object):
         """Signal emitted when battery data is updated"""
         pass
 
-def battery_sender_thread(piracer, service_instance):
+def battery_sender_thread(piracer):
     """Thread function to continuously read battery and send via DBus"""
     list_data = deque([0.0]*100)
     
     # Wait a bit for service to initialize
     time.sleep(2)
+    
+    try:
+        bus = dbus.SessionBus()
+        service = bus.get_object("org.team7.IC", "/CarInformation")
+        car_interface = dbus.Interface(service, "org.team7.IC.Interface")
+        print(f"[SENDER] {datetime.datetime.now().strftime('%H:%M:%S.%f')[:-3]} ✅ Connected to DBus service")
+    except Exception as e:
+        print(f"[SENDER] {datetime.datetime.now().strftime('%H:%M:%S.%f')[:-3]} ❌ Failed to connect to DBus: {e}")
+        return
     
     print(f"[SENDER] {datetime.datetime.now().strftime('%H:%M:%S.%f')[:-3]} 🔄 Starting data transmission loop...")
     
@@ -80,9 +89,9 @@ def battery_sender_thread(piracer, service_instance):
             list_data.append(battery_now)
             battery = max(list_data)
             
-            # Call service method directly to avoid D-Bus self-call issues
-            service_instance.setBattery(float(battery))
-            print(f"[SENDER] {datetime.datetime.now().strftime('%H:%M:%S.%f')[:-3]} 📤 Sent to service: {battery:.1f}%")
+            # Send to DBus
+            car_interface.setBattery(float(battery))
+            print(f"[SENDER] {datetime.datetime.now().strftime('%H:%M:%S.%f')[:-3]} 📤 Sent to DBus: {battery:.1f}%")
             
         except Exception as e:
             print(f"[SENDER] {datetime.datetime.now().strftime('%H:%M:%S.%f')[:-3]} ❌ Error: {e}")
@@ -115,7 +124,7 @@ if __name__ == "__main__":
         exit(1)
     
     # Start battery sender thread
-    sender_thread = threading.Thread(target=battery_sender_thread, args=(piracer, service), daemon=True)
+    sender_thread = threading.Thread(target=battery_sender_thread, args=(piracer,), daemon=True)
     sender_thread.start()
     print(f"[MAIN] {datetime.datetime.now().strftime('%H:%M:%S.%f')[:-3]} ✅ Battery sender thread started")
     

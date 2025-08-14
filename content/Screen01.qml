@@ -23,14 +23,18 @@ Rectangle {
     property int currentRpm: 0
     property string currentGear: "N"
     property bool canDataAvailable: dashboardDataCAN.canConnected
-    
+
     // Battery data from DBus
     property int currentBatteryLevel: Math.round(dashboardDataDBus.batteryLevel)
+    property real currentChargingCurrent: dashboardDataDBus.chargingCurrent || 0
     
+    // Charging status - green when current > 1000mA, invisible otherwise
+    property bool isCharging: currentChargingCurrent > 1000
+
     // Animated properties for smooth transitions
     property real animatedSpeed: 0
     property real animatedRpm: 0
-    
+
     // Smooth animation for speed changes
     Behavior on animatedSpeed {
         NumberAnimation {
@@ -38,7 +42,7 @@ Rectangle {
             easing.type: Easing.OutQuad
         }
     }
-    
+
     // Smooth animation for RPM changes
     Behavior on animatedRpm {
         NumberAnimation {
@@ -46,34 +50,34 @@ Rectangle {
             easing.type: Easing.OutQuad
         }
     }
-    
+
     // One Euro Filter properties for adaptive smoothing
     property real minCutoff: 1.0      // Minimum cutoff frequency (Hz) - controls baseline smoothing
     property real beta: 0.1           // Cutoff slope - how much filtering adapts to speed of change
     property real derivateCutoff: 1.0 // Cutoff for derivative calculation
-    
+
     // Speed filter state
     property real speedFilterState: 0
     property real speedDerivativeState: 0
     property real speedPreviousTime: 0
-    
-    // RPM filter state  
+
+    // RPM filter state
     property real rpmFilterState: 0
     property real rpmDerivativeState: 0
     property real rpmPreviousTime: 0
-    
+
     // Low-pass filter function
     function lowPassFilter(current, previous, alpha) {
         return alpha * current + (1.0 - alpha) * previous
     }
-    
+
     // Calculate smoothing factor (alpha) from cutoff frequency and time delta
     function calculateAlpha(cutoff, dt) {
         if (dt <= 0) return 1.0
         var tau = 1.0 / (2.0 * Math.PI * cutoff)
         return 1.0 / (1.0 + tau / dt)
     }
-    
+
     // One Euro Filter for speed
     function oneEuroFilterSpeed(value, timestamp) {
         if (speedPreviousTime === 0) {
@@ -83,32 +87,32 @@ Rectangle {
             speedPreviousTime = timestamp
             return value
         }
-        
+
         var dt = (timestamp - speedPreviousTime) / 1000.0 // Convert ms to seconds
         speedPreviousTime = timestamp
-        
+
         if (dt <= 0) return speedFilterState // Avoid division by zero
-        
+
         // Calculate derivative (rate of change)
         var derivative = (value - speedFilterState) / dt
-        
+
         // Smooth the derivative
         var derivativeAlpha = calculateAlpha(derivateCutoff, dt)
         speedDerivativeState = lowPassFilter(derivative, speedDerivativeState, derivativeAlpha)
-        
+
         // Calculate adaptive cutoff frequency
         var adaptiveCutoff = minCutoff + beta * Math.abs(speedDerivativeState)
-        
+
         // Apply main filter with adaptive cutoff
         var alpha = calculateAlpha(adaptiveCutoff, dt)
         speedFilterState = lowPassFilter(value, speedFilterState, alpha)
-        
+
         // Debug logging
         console.log("Speed OneEuro - Raw:", value, "Filtered:", speedFilterState.toFixed(1), "Derivative:", speedDerivativeState.toFixed(1), "Cutoff:", adaptiveCutoff.toFixed(2))
-        
+
         return Math.round(speedFilterState)
     }
-    
+
     // One Euro Filter for RPM
     function oneEuroFilterRpm(value, timestamp) {
         if (rpmPreviousTime === 0) {
@@ -118,29 +122,29 @@ Rectangle {
             rpmPreviousTime = timestamp
             return value
         }
-        
+
         var dt = (timestamp - rpmPreviousTime) / 1000.0 // Convert ms to seconds
         rpmPreviousTime = timestamp
-        
+
         if (dt <= 0) return rpmFilterState // Avoid division by zero
-        
+
         // Calculate derivative (rate of change)
         var derivative = (value - rpmFilterState) / dt
-        
+
         // Smooth the derivative
         var derivativeAlpha = calculateAlpha(derivateCutoff, dt)
         rpmDerivativeState = lowPassFilter(derivative, rpmDerivativeState, derivativeAlpha)
-        
+
         // Calculate adaptive cutoff frequency
         var adaptiveCutoff = minCutoff + beta * Math.abs(rpmDerivativeState)
-        
+
         // Apply main filter with adaptive cutoff
         var alpha = calculateAlpha(adaptiveCutoff, dt)
         rpmFilterState = lowPassFilter(value, rpmFilterState, alpha)
-        
+
         // Debug logging
         console.log("RPM OneEuro - Raw:", value, "Filtered:", rpmFilterState.toFixed(1), "Derivative:", rpmDerivativeState.toFixed(1), "Cutoff:", adaptiveCutoff.toFixed(2))
-        
+
         var result = Math.round(rpmFilterState)
         return result < 50 ? 0 : result  // Consider anything below 50 RPM as stopped
     }
@@ -154,22 +158,22 @@ Rectangle {
         onTriggered: {
             if (dashboardDataCAN.canConnected) {
                 var currentTime = Date.now()
-                
+
                 // Apply One Euro Filter to both speed and RPM
                 var newSmoothedSpeed = rectangle.oneEuroFilterSpeed(dashboardDataCAN.currentSpeed, currentTime)
                 var newSmoothedRpm = rectangle.oneEuroFilterRpm(dashboardDataCAN.currentRpm, currentTime)
-                
+
                 // Update our properties if the smoothed values changed
                 if (rectangle.currentSpeed !== newSmoothedSpeed) {
                     rectangle.currentSpeed = newSmoothedSpeed
                     rectangle.animatedSpeed = rectangle.currentSpeed  // Trigger smooth animation
                 }
-                
+
                 if (rectangle.currentRpm !== newSmoothedRpm) {
                     rectangle.currentRpm = newSmoothedRpm
                     rectangle.animatedRpm = rectangle.currentRpm  // Trigger smooth animation
                 }
-                
+
                 console.log("CAN sample - Raw Speed:", dashboardDataCAN.currentSpeed, "Filtered:", rectangle.currentSpeed, "Raw RPM:", dashboardDataCAN.currentRpm, "Filtered:", rectangle.currentRpm)
             }
         }
@@ -212,6 +216,7 @@ Rectangle {
     onCurrentRpmChanged: console.log("Screen01 currentRpm changed to:", currentRpm, "(smoothed)", "CAN connected:", dashboardDataCAN.canConnected, "Raw CAN RPM:", dashboardDataCAN.currentRpm)
     onCanDataAvailableChanged: console.log("Screen01 canDataAvailable changed to:", canDataAvailable)
     onCurrentBatteryLevelChanged: console.log("Screen01 battery level changed to:", currentBatteryLevel + "%")
+    onCurrentChargingCurrentChanged: console.log("Screen01 charging current changed to:", currentChargingCurrent + "mA", "- Charging:", isCharging)
 
     // Debug timer to check binding status and One Euro Filter state
     Timer {
@@ -237,7 +242,7 @@ Rectangle {
     DashboardDataCAN {
         id: dashboardDataCAN
     }
-    
+
     // DBus data component for battery and other PiRacer data
     DashboardDataDBus {
         id: dashboardDataDBus
@@ -300,67 +305,8 @@ Rectangle {
         }
 
         // Left arrow - decrease value
-        VectorIcon {
-            id: leftArrow
-            x: 401
-            y: 66
-            rotation: 180
-            iconWidth: 24
-            iconHeight: 26
-            direction: "left"
-            iconColor: "#77C000"
-            hoverColor: "#88DD00"
-            pressedColor: "#66AA00"
-
-            MouseArea {
-                anchors.fill: parent
-                anchors.rightMargin: 0
-                anchors.bottomMargin: 0
-                anchors.leftMargin: 0
-                anchors.topMargin: 0
-                rotation: 180
-                hoverEnabled: true
-
-                onEntered: leftArrow.currentState = "hover"
-                onExited: leftArrow.currentState = "normal"
-                onPressed: leftArrow.currentState = "pressed"
-                onReleased: leftArrow.currentState = "hover"
-                
-                onClicked: {
-                    // Manual control removed - data now comes from CAN bus only
-                    console.log("Manual speed control disabled - using CAN data only")
-                }
-            }
-        }
 
         // Right arrow - increase value
-        VectorIcon {
-            id: rightArrow
-            x: 544
-            y: 66
-            rotation: 180
-            iconWidth: 24
-            iconHeight: 26
-            direction: "right"
-            iconColor: "#77C000"
-            hoverColor: "#88DD00"
-            pressedColor: "#66AA00"
-
-            MouseArea {
-                anchors.fill: parent
-                hoverEnabled: true
-
-                onEntered: rightArrow.currentState = "hover"
-                onExited: rightArrow.currentState = "normal"
-                onPressed: rightArrow.currentState = "pressed"
-                onReleased: rightArrow.currentState = "hover"
-                
-                onClicked: {
-                    // Manual control removed - data now comes from CAN bus only
-                    console.log("Manual speed control disabled - using CAN data only")
-                }
-            }
-        }
 
         RowLayout {
             id: rowContainer
@@ -406,7 +352,7 @@ Rectangle {
                         weatherData.nextLocation() // Cycle through locations
                     }
                     hoverEnabled: true
-                    
+
                     Row {
                         spacing: 5
                         anchors.centerIn: parent
@@ -418,14 +364,14 @@ Rectangle {
                             source: weatherData.weatherIconUrl
                             fillMode: Image.PreserveAspectFit
                             anchors.verticalCenter: parent.verticalCenter
-                            
+
                             // Fallback for when image fails to load
                             onStatusChanged: {
                                 if (status === Image.Error) {
                                     source = "images/weather-icon.svg" // Fallback to local icon
                                 }
                             }
-                            
+
                             Behavior on source {
                                 PropertyAnimation { duration: 300 }
                             }
@@ -438,7 +384,7 @@ Rectangle {
                             font.pixelSize: 12
                             verticalAlignment: Text.AlignVCenter
                             anchors.verticalCenter: parent.verticalCenter
-                            
+
                         }
                     }
                 }
@@ -495,10 +441,102 @@ Rectangle {
             id: frame13
             x: 210
             y: 333
-            
+
             // Connect to real battery data
             batteryLevel: rectangle.currentBatteryLevel
             useRealData: true
+        }
+
+        Row {
+            id: rowLayout
+            x: 394
+            y: 66
+            width: 174
+            height: 26
+            spacing: 25  // Even spacing between all 4 elements
+
+            VectorIcon {
+                id: leftArrow
+                rotation: 180
+                iconWidth: 24
+                iconHeight: 26
+                direction: "left"
+                iconColor: "#77C000"
+                hoverColor: "#88DD00"
+                pressedColor: "#66AA00"
+
+                MouseArea {
+                    anchors.fill: parent
+                    anchors.rightMargin: 0
+                    anchors.bottomMargin: 0
+                    anchors.leftMargin: 0
+                    anchors.topMargin: 0
+                    rotation: 180
+                    hoverEnabled: true
+
+                    onEntered: leftArrow.currentState = "hover"
+                    onExited: leftArrow.currentState = "normal"
+                    onPressed: leftArrow.currentState = "pressed"
+                    onReleased: leftArrow.currentState = "hover"
+
+                    onClicked: {
+                        // Left turn signal
+                        console.log("Left turn signal clicked")
+                    }
+                }
+            }
+
+            Item {
+                // Spacer item - fixed width for even spacing
+                width: 24
+                height: 26
+            }
+
+            Image {
+                id: charging_icon
+                width: 24
+                height: 26
+                source: "images/Vector.svg"
+                sourceSize.height: 26
+                sourceSize.width: 24
+                fillMode: Image.PreserveAspectFit
+                opacity: rectangle.isCharging ? 1.0 : 0.0
+                
+                Behavior on opacity {
+                    NumberAnimation {
+                        duration: 300
+                        easing.type: Easing.OutQuad
+                    }
+                }
+            }
+
+            VectorIcon {
+                id: rightArrow
+                rotation: 180
+                iconWidth: 24
+                iconHeight: 26
+                direction: "right"
+                iconColor: "#77C000"
+                hoverColor: "#88DD00"
+                pressedColor: "#66AA00"
+
+                MouseArea {
+                    anchors.fill: parent
+                    hoverEnabled: true
+
+                    onEntered: rightArrow.currentState = "hover"
+                    onExited: rightArrow.currentState = "normal"
+                    onPressed: rightArrow.currentState = "pressed"
+                    onReleased: rightArrow.currentState = "hover"
+
+                    onClicked: {
+                        // Right turn signal
+                        console.log("Right turn signal clicked")
+                    }
+                }
+            }
+
+
         }
 
         // Up arrow - faster increment
