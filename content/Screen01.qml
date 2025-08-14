@@ -29,7 +29,7 @@ Rectangle {
     property real currentChargingCurrent: dashboardDataDBus.chargingCurrent || 0
     
     // Charging status - green when current > 1000mA, invisible otherwise
-    property bool isCharging: currentChargingCurrent > 1000
+    property bool isCharging: currentChargingCurrent > 100
 
     // Animated properties for smooth transitions
     property real animatedSpeed: 0
