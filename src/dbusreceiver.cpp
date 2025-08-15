@@ -10,7 +10,7 @@ DBusReceiver::DBusReceiver(QObject *parent)
 {
     qDebug() << "[DBusReceiver]" << QDateTime::currentDateTime().toString("hh:mm:ss.zzz")
              << "Initializing DBus connection...";
-             
+
     m_interface = new QDBusInterface(
         "org.team7.IC", "/CarInformation", "org.team7.IC.Interface",
         QDBusConnection::sessionBus(), this
@@ -29,13 +29,13 @@ DBusReceiver::DBusReceiver(QObject *parent)
     // Connect to the DataReceived signal from Python service
     bool connected = QDBusConnection::sessionBus().connect(
         "org.team7.IC",
-        "/CarInformation", 
+        "/CarInformation",
         "org.team7.IC.Interface",
         "DataReceived",
         this,
         SLOT(onDataReceived(QString))
     );
-    
+
     if (connected) {
         qDebug() << "[DBusReceiver]" << QDateTime::currentDateTime().toString("hh:mm:ss.zzz")
                  << "✅ Connected to DataReceived signal";
@@ -47,46 +47,46 @@ DBusReceiver::DBusReceiver(QObject *parent)
 
 void DBusReceiver::onDataReceived(const QString &dataJson) {
     QString timestamp = QDateTime::currentDateTime().toString("hh:mm:ss.zzz");
-    
-    qDebug() << "[DBusReceiver]" << timestamp 
+
+    qDebug() << "[DBusReceiver]" << timestamp
              << "📨 Received D-Bus data:" << dataJson;
-    
+
     // Parse JSON data
     QJsonParseError error;
     QJsonDocument doc = QJsonDocument::fromJson(dataJson.toUtf8(), &error);
-    
+
     if (error.error != QJsonParseError::NoError) {
-        qWarning() << "[DBusReceiver]" << timestamp 
+        qWarning() << "[DBusReceiver]" << timestamp
                    << "❌ Failed to parse JSON:" << error.errorString();
         return;
     }
-    
+
     QJsonObject data = doc.object();
-    
+
     // Update battery capacity if present
     if (data.contains("battery_capacity") && data["battery_capacity"].isDouble()) {
         double newValue = data["battery_capacity"].toDouble();
         double oldValue = m_battery;
-        
+
         if (!qFuzzyCompare(m_battery, newValue)) {
             m_battery = newValue;
-            qDebug() << "[DBusReceiver]" << timestamp 
-                     << "🔋 Battery updated - Old:" << oldValue 
-                     << "New:" << newValue 
+            qDebug() << "[DBusReceiver]" << timestamp
+                     << "🔋 Battery updated - Old:" << oldValue
+                     << "New:" << newValue
                      << "Change:" << (newValue - oldValue);
             emit batteryChanged();
         }
     }
-    
+
     // Update charging current if present
     if (data.contains("charging_current") && data["charging_current"].isDouble()) {
         double newValue = data["charging_current"].toDouble();
         double oldValue = m_chargingCurrent;
-        
+
         if (!qFuzzyCompare(m_chargingCurrent, newValue)) {
             m_chargingCurrent = newValue;
-            qDebug() << "[DBusReceiver]" << timestamp 
-                     << "⚡ Charging current updated - Old:" << oldValue 
+            qDebug() << "[DBusReceiver]" << timestamp
+                     << "⚡ Charging current updated - Old:" << oldValue
                      << "New:" << newValue << "mA"
                      << "Change:" << (newValue - oldValue) << "mA";
             emit chargingCurrentChanged();

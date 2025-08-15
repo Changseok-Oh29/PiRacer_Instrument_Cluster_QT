@@ -11,7 +11,7 @@ class DBusReceiver : public QObject
     Q_OBJECT
     Q_PROPERTY(double battery READ battery NOTIFY batteryChanged)
     Q_PROPERTY(double chargingCurrent READ chargingCurrent NOTIFY chargingCurrentChanged)
-    
+
 
 public:
     explicit DBusReceiver(QObject *parent = nullptr);

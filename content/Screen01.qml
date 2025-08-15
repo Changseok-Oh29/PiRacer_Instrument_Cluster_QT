@@ -27,9 +27,9 @@ Rectangle {
     // Battery data from DBus
     property int currentBatteryLevel: Math.round(dashboardDataDBus.batteryLevel)
     property real currentChargingCurrent: dashboardDataDBus.chargingCurrent || 0
-    
+
     // Charging status - green when current > 1000mA, invisible otherwise
-    property bool isCharging: currentChargingCurrent > 100
+    property bool isCharging: currentChargingCurrent > 1000
 
     // Animated properties for smooth transitions
     property real animatedSpeed: 0
@@ -501,7 +501,7 @@ Rectangle {
                 sourceSize.width: 24
                 fillMode: Image.PreserveAspectFit
                 opacity: rectangle.isCharging ? 1.0 : 0.0
-                
+
                 Behavior on opacity {
                     NumberAnimation {
                         duration: 300
