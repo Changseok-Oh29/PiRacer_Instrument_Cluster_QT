@@ -22,4 +22,3 @@ if __name__ == '__main__':
         piracer.set_throttle_percent(throttle)
         piracer.set_steering_percent(steering)
 
-	 
