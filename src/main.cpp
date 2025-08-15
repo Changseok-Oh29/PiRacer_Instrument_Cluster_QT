@@ -28,15 +28,36 @@ int main(int argc, char *argv[])
     qDebug() << "[MAIN]" << QDateTime::currentDateTime().toString("hh:mm:ss.zzz")
              << "🔧 Starting application...";
 
-    // run python
-    QString pythonPath = "python3"; // Adjust for Windows: \venv\Scripts\python.exe
-    QString scriptPath = QCoreApplication::applicationDirPath() + "/rc_example.py";
-    QProcess *pythonProcess = new QProcess(&app);
-    pythonProcess->start(pythonPath, QStringList() << scriptPath);
+    // Start Python processes
+    
+    // 1. Start RC example (joystick control)
+    QString pythonPath = "python3";
+    QString rcScriptPath = QCoreApplication::applicationDirPath() + "/rc_example.py";
+    QProcess *pythonRcProcess = new QProcess(&app);
+    pythonRcProcess->start(pythonPath, QStringList() << rcScriptPath);
 
-    if (!pythonProcess->waitForStarted(3000)) {
-        qWarning("Failed to start Python joystick process");
+    if (!pythonRcProcess->waitForStarted(3000)) {
+        qWarning() << "[MAIN]" << QDateTime::currentDateTime().toString("hh:mm:ss.zzz")
+                   << "❌ Failed to start Python RC process:" << rcScriptPath;
+    } else {
+        qDebug() << "[MAIN]" << QDateTime::currentDateTime().toString("hh:mm:ss.zzz")
+                 << "✅ Python RC process started:" << rcScriptPath;
     }
+
+    // 2. Start DBus sender (battery data provider)
+    QString dbusScriptPath = QCoreApplication::applicationDirPath() + "/dbussender.py";
+    QProcess *pythonDbusProcess = new QProcess(&app);
+    pythonDbusProcess->start(pythonPath, QStringList() << dbusScriptPath);
+
+    if (!pythonDbusProcess->waitForStarted(3000)) {
+        qWarning() << "[MAIN]" << QDateTime::currentDateTime().toString("hh:mm:ss.zzz")
+                   << "❌ Failed to start Python DBus process:" << dbusScriptPath;
+    } else {
+        qDebug() << "[MAIN]" << QDateTime::currentDateTime().toString("hh:mm:ss.zzz")
+                 << "✅ Python DBus process started:" << dbusScriptPath;
+    }
+
+
 
     // Create CAN receiver instance
     CanReceiver canReceiver;

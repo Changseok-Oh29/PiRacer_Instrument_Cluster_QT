@@ -5,6 +5,7 @@
 #include <QDBusInterface>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QTimer>
 
 class DBusReceiver : public QObject
 {
@@ -27,10 +28,18 @@ signals:
 public slots:
     void onDataReceived(const QString &dataJson);
 
+private slots:
+    void tryConnectToDBus();
+
 private:
+    void connectToDBus();
+    
     QDBusInterface *m_interface;
+    QTimer *m_retryTimer;
     double m_battery;
     double m_chargingCurrent;
+    int m_retryCount;
+    static const int MAX_RETRIES = 10;
 };
 
 #endif // DBUSRECEIVER_H

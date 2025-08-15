@@ -2,15 +2,48 @@
 #include <QDebug>
 #include <QDBusReply>
 #include <QDateTime>
+#include <QTimer>
 
 DBusReceiver::DBusReceiver(QObject *parent)
     : QObject(parent),
+      m_interface(nullptr),
+      m_retryTimer(new QTimer(this)),
       m_battery(0.0),
-      m_chargingCurrent(0.0)
+      m_chargingCurrent(0.0),
+      m_retryCount(0)
 {
     qDebug() << "[DBusReceiver]" << QDateTime::currentDateTime().toString("hh:mm:ss.zzz")
-             << "Initializing DBus connection...";
+             << "Initializing DBus connection with retry logic...";
+    
+    // Set up retry timer
+    m_retryTimer->setSingleShot(true);
+    connect(m_retryTimer, &QTimer::timeout, this, &DBusReceiver::tryConnectToDBus);
+    
+    // Start first connection attempt after a short delay to let Python service start
+    QTimer::singleShot(1000, this, &DBusReceiver::tryConnectToDBus);
+}
 
+void DBusReceiver::tryConnectToDBus() {
+    if (m_retryCount >= MAX_RETRIES) {
+        qWarning() << "[DBusReceiver]" << QDateTime::currentDateTime().toString("hh:mm:ss.zzz")
+                   << "❌ Maximum retry attempts reached. DBus connection failed.";
+        return;
+    }
+    
+    m_retryCount++;
+    qDebug() << "[DBusReceiver]" << QDateTime::currentDateTime().toString("hh:mm:ss.zzz")
+             << "🔄 Attempting DBus connection (attempt" << m_retryCount << "/" << MAX_RETRIES << ")";
+    
+    connectToDBus();
+}
+
+void DBusReceiver::connectToDBus() {
+    // Clean up previous interface if exists
+    if (m_interface) {
+        delete m_interface;
+        m_interface = nullptr;
+    }
+             
     m_interface = new QDBusInterface(
         "org.team7.IC", "/CarInformation", "org.team7.IC.Interface",
         QDBusConnection::sessionBus(), this
@@ -18,13 +51,16 @@ DBusReceiver::DBusReceiver(QObject *parent)
 
     if (!m_interface->isValid()) {
         qWarning() << "[DBusReceiver]" << QDateTime::currentDateTime().toString("hh:mm:ss.zzz")
-                   << "❌ Failed to connect to DBus interface!";
+                   << "❌ Failed to connect to DBus interface! (attempt" << m_retryCount << ")";
         qWarning() << "[DBusReceiver] Error:" << m_interface->lastError().message();
+        
+        // Retry after 2 seconds
+        m_retryTimer->start(2000);
         return;
     }
 
     qDebug() << "[DBusReceiver]" << QDateTime::currentDateTime().toString("hh:mm:ss.zzz")
-             << "✅ Successfully connected to DBus service";
+             << "✅ Successfully connected to DBus service on attempt" << m_retryCount;
 
     // Connect to the DataReceived signal from Python service
     bool connected = QDBusConnection::sessionBus().connect(
