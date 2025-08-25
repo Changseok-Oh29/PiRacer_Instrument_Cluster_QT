@@ -1,0 +1,22 @@
+<map id="src/dbusreceiver.cpp" name="src/dbusreceiver.cpp">
+<area shape="rect" id="Node000001" title=" " alt="" coords="520,5,675,31"/>
+<area shape="rect" id="Node000002" href="$dbusreceiver_8h.html" title=" " alt="" coords="327,79,444,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="564,33,433,77,432,72,562,28"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="530,152,601,177"/>
+<area shape="poly" id="edge10_Node000001_Node000007" title=" " alt="" coords="585,33,566,53,550,80,548,94,548,110,556,139,551,140,543,110,542,94,546,78,562,50,581,29"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="560,79,635,104"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="600,31,600,65,595,65,595,31"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="659,79,762,104"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="617,28,682,69,679,74,614,33"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="787,79,883,104"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="636,28,784,72,782,77,635,33"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,152,80,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="327,107,94,154,93,149,326,101"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="105,152,229,177"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="351,107,216,150,214,145,349,101"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="253,152,379,177"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="376,106,339,144,335,140,372,102"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="404,152,505,177"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="399,102,436,140,432,144,395,106"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="415,102,524,144,522,149,413,107"/>
+</map>
