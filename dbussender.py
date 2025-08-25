@@ -9,9 +9,17 @@ from piracer.vehicles import PiRacerStandard
 from collections import deque
 import time
 
+# Initialize global variable for voltage filtering
+filtered_voltage = 0.0
+
 def get_battery(piracer):
-    v = piracer.get_battery_voltage() / 3
-    print(f"[SENDER] {datetime.datetime.now().strftime('%H:%M:%S.%f')[:-3]} Raw voltage: {v:.3f}V")
+    global filtered_voltage
+    alpha = 0.1
+    raw_voltage = piracer.get_battery_voltage()
+    filtered_voltage = (alpha * raw_voltage) + ((1 - alpha) * filtered_voltage)
+    v = filtered_voltage / 3
+
+    print(f"[SENDER] {datetime.datetime.now().strftime('%H:%M:%S.%f')[:-3]} voltage: {v:.3f}V")
 
     if v > 4.2:
         battery_percentage = 100
@@ -37,6 +45,9 @@ class CarInformationService(dbus.service.Object):
         dbus.service.Object.__init__(self, bus_name, "/CarInformation")
         self.battery_level = 0.0
         self.current_ma = 0.0
+        # Turn signal states
+        self.left_turn_signal = False
+        self.right_turn_signal = False
         print(f"[SERVICE] {datetime.datetime.now().strftime('%H:%M:%S.%f')[:-3]} ✅ DBus service org.team7.IC started")
 
     @dbus.service.method("org.team7.IC.Interface", in_signature='d', out_signature='')
@@ -58,11 +69,27 @@ class CarInformationService(dbus.service.Object):
         print(f"[SERVICE] {datetime.datetime.now().strftime('%H:%M:%S.%f')[:-3]} 📊 Battery level requested: {self.battery_level:.1f}%")
         return self.battery_level
 
+    @dbus.service.method("org.team7.IC.Interface", in_signature='bb', out_signature='')
+    def setTurnSignals(self, left_active, right_active):
+        """Set turn signal states"""
+        self.left_turn_signal = bool(left_active)
+        self.right_turn_signal = bool(right_active)
+        print(f"[SERVICE] {datetime.datetime.now().strftime('%H:%M:%S.%f')[:-3]} 🔄 Turn signals set - Left: {self.left_turn_signal}, Right: {self.right_turn_signal}")
+        self._emit_data_signal()
+
+    @dbus.service.method("org.team7.IC.Interface", in_signature='', out_signature='bb')
+    def getTurnSignals(self):
+        """Get current turn signal states"""
+        print(f"[SERVICE] {datetime.datetime.now().strftime('%H:%M:%S.%f')[:-3]} 📊 Turn signals requested - Left: {self.left_turn_signal}, Right: {self.right_turn_signal}")
+        return self.left_turn_signal, self.right_turn_signal
+
     def _emit_data_signal(self):
-        """Emit signal with both battery and charging data"""
+        """Emit signal with battery, charging and turn signal data"""
         data = {
             "battery_capacity": self.battery_level,
-            "charging_current": self.current_ma
+            "charging_current": self.current_ma,
+            "left_turn_signal": self.left_turn_signal,
+            "right_turn_signal": self.right_turn_signal
         }
         json_data = json.dumps(data)
         print(f"[TEST_SERVICE] {datetime.datetime.now().strftime('%H:%M:%S.%f')[:-3]} 📤 Emitting DataReceived signal: {json_data}")
@@ -73,6 +100,75 @@ class CarInformationService(dbus.service.Object):
     def DataReceived(self, data_json):
         """Signal emitted when battery data is updated"""
         pass
+
+class TurnSignalClient:
+    """Client class for sending turn signal data to the DBus service"""
+    def __init__(self):
+        self.bus = dbus.SessionBus()
+        self.service_name = "org.team7.IC"
+        self.object_path = "/CarInformation"
+        self.interface_name = "org.team7.IC.Interface"
+        
+        # Connection state
+        self.connected = False
+        self.retry_count = 0
+        self.max_retries = 10
+        
+        # Connect to service
+        self._connect_to_service()
+        
+    def _connect_to_service(self):
+        """Connect to the DBus service with retry logic"""
+        while self.retry_count < self.max_retries and not self.connected:
+            try:
+                # Get the service object
+                self.service_object = self.bus.get_object(self.service_name, self.object_path)
+                self.interface = dbus.Interface(self.service_object, self.interface_name)
+                
+                print(f"[CLIENT] ✓ Connected to DBus service: {self.service_name}")
+                self.connected = True
+                return True
+                
+            except dbus.DBusException as e:
+                self.retry_count += 1
+                print(f"[CLIENT] DBus connection attempt {self.retry_count}/{self.max_retries} failed: {e}")
+                
+                if self.retry_count < self.max_retries:
+                    print("[CLIENT] Retrying in 2 seconds...")
+                    time.sleep(2)
+                else:
+                    print("[CLIENT] ❌ Failed to connect to DBus service after maximum retries")
+                    return False
+        
+        return self.connected
+        
+    def send_turn_signal(self, left_active, right_active):
+        """
+        Send turn signal states to the dashboard service
+        
+        Args:
+            left_active (bool): Left turn signal state
+            right_active (bool): Right turn signal state
+        """
+        if not self.connected:
+            print("[CLIENT] ❌ Not connected to DBus service, attempting reconnection...")
+            if not self._connect_to_service():
+                return False
+                
+        try:
+            # Send turn signal data via DBus
+            self.interface.setTurnSignals(
+                dbus.Boolean(left_active),
+                dbus.Boolean(right_active)
+            )
+            
+            print(f"[CLIENT] ✓ Turn signals sent - Left: {left_active}, Right: {right_active}")
+            return True
+            
+        except dbus.DBusException as e:
+            print(f"[CLIENT] ❌ DBus send error: {e}")
+            self.connected = False
+            return False
 
 def battery_sender_thread(piracer, service_instance):
     """Thread function to continuously read battery and send via DBus"""

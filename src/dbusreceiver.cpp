@@ -10,6 +10,8 @@ DBusReceiver::DBusReceiver(QObject *parent)
       m_retryTimer(new QTimer(this)),
       m_battery(0.0),
       m_chargingCurrent(0.0),
+      m_leftTurnSignal(false),
+      m_rightTurnSignal(false),
       m_retryCount(0)
 {
     qDebug() << "[DBusReceiver]" << QDateTime::currentDateTime().toString("hh:mm:ss.zzz")
@@ -126,6 +128,30 @@ void DBusReceiver::onDataReceived(const QString &dataJson) {
                      << "New:" << newValue << "mA"
                      << "Change:" << (newValue - oldValue) << "mA";
             emit chargingCurrentChanged();
+        }
+    }
+    
+    // Update left turn signal if present
+    if (data.contains("left_turn_signal") && data["left_turn_signal"].isBool()) {
+        bool newValue = data["left_turn_signal"].toBool();
+        
+        if (m_leftTurnSignal != newValue) {
+            m_leftTurnSignal = newValue;
+            qDebug() << "[DBusReceiver]" << timestamp
+                     << "🔄 Left turn signal updated:" << (newValue ? "ON" : "OFF");
+            emit leftTurnSignalChanged();
+        }
+    }
+    
+    // Update right turn signal if present
+    if (data.contains("right_turn_signal") && data["right_turn_signal"].isBool()) {
+        bool newValue = data["right_turn_signal"].toBool();
+        
+        if (m_rightTurnSignal != newValue) {
+            m_rightTurnSignal = newValue;
+            qDebug() << "[DBusReceiver]" << timestamp
+                     << "🔄 Right turn signal updated:" << (newValue ? "ON" : "OFF");
+            emit rightTurnSignalChanged();
         }
     }
 }
