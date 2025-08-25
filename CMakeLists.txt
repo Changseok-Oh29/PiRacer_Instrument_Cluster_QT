@@ -37,6 +37,13 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Set build type specific definitions
+if(CMAKE_BUILD_TYPE STREQUAL "Release")
+    add_definitions(-DQT_NO_DEBUG_OUTPUT)
+    add_definitions(-DQT_NO_INFO_OUTPUT)
+    add_definitions(-DQT_NO_WARNING_OUTPUT)
+endif()
+
 # QML settings for cross-compilation
 if(CMAKE_CROSSCOMPILING)
     set(QT_FEATURE_qml_jit OFF)

@@ -8,6 +8,7 @@
 #include <QProcess>
 #include <QDBusConnection>
 #include <QDateTime>
+#include <QLoggingCategory>
 
 #include "app_environment.h"
 #include "import_qml_components_plugins.h"
@@ -20,6 +21,11 @@ int main(int argc, char *argv[])
     set_qt_environment();
 
     QGuiApplication app(argc, argv);
+
+    // Disable all Qt logging for release build
+#ifdef QT_NO_DEBUG
+    QLoggingCategory::setFilterRules("*=false");
+#endif
 
     qDebug() << "[MAIN]" << QDateTime::currentDateTime().toString("hh:mm:ss.zzz")
              << "🚀 Starting PiRacer Instrument Cluster Application";

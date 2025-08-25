@@ -8,6 +8,24 @@
 BUILD_DIR="build-raspi"
 PI_MODEL="4-64bit"  # Options: 4-64bit, 4-32bit, 3-32bit, 1-32bit, zero-32bit
 
+# Default build type
+BUILD_TYPE="Release"
+
+# Check for command line arguments
+if [ "$1" = "--debug" ] || [ "$1" = "-d" ]; then
+    BUILD_TYPE="Debug"
+    echo -e "${YELLOW}Building in Debug mode (with logs and debug info)${NC}"
+elif [ "$1" = "--release" ] || [ "$1" = "-r" ]; then
+    BUILD_TYPE="Release"
+    echo -e "${YELLOW}Building in Release mode (optimized, no logs)${NC}"
+elif [ -n "$1" ]; then
+    echo "Usage: $0 [--debug|-d] [--release|-r]"
+    echo "  --debug, -d    Build in Debug mode (with logs and debug info)"
+    echo "  --release, -r  Build in Release mode (optimized, no logs)"
+    echo "  (default is Release mode)"
+    exit 1
+fi
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -60,7 +78,7 @@ esac
 # Run CMake configuration
 cmake \
     -DCMAKE_TOOLCHAIN_FILE=../raspi-toolchain.cmake \
-    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
     -DCMAKE_C_FLAGS="$CPU_FLAGS" \
     -DCMAKE_CXX_FLAGS="$CPU_FLAGS" \
     ..
