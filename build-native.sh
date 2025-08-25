@@ -3,6 +3,24 @@
 # Native build script for testing on development machine
 BUILD_DIR="build-native"
 
+# Default build type
+BUILD_TYPE="Debug"
+
+# Check for command line arguments
+if [ "$1" = "--debug" ] || [ "$1" = "-d" ]; then
+    BUILD_TYPE="Debug"
+    echo -e "${YELLOW}Building in Debug mode (with logs and debug info)${NC}"
+elif [ "$1" = "--release" ] || [ "$1" = "-r" ]; then
+    BUILD_TYPE="Release"
+    echo -e "${YELLOW}Building in Release mode (optimized, no logs)${NC}"
+elif [ -n "$1" ]; then
+    echo "Usage: $0 [--debug|-d] [--release|-r]"
+    echo "  --debug, -d    Build in Debug mode (with logs and debug info)"
+    echo "  --release, -r  Build in Release mode (optimized, no logs)"
+    echo "  (default is Debug mode for native builds)"
+    exit 1
+fi
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -54,13 +72,13 @@ fi
 # Set up CMake configuration
 if [ "$QT6_FOUND" = true ]; then
     cmake \
-        -DCMAKE_BUILD_TYPE=Debug \
+        -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
         -DCMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH" \
         ..
 else
     echo -e "${YELLOW}Using system Qt6 detection...${NC}"
     cmake \
-        -DCMAKE_BUILD_TYPE=Debug \
+        -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
         ..
 fi
 
