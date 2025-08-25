@@ -28,8 +28,15 @@ Rectangle {
     property int currentBatteryLevel: Math.round(dashboardDataDBus.batteryLevel)
     property real currentChargingCurrent: dashboardDataDBus.chargingCurrent || 0
 
-    // Charging status - green when current > 1000mA, invisible otherwise
-    property bool isCharging: currentChargingCurrent > 1000
+    // Charging status - green when current > 100mA (lowered threshold), invisible otherwise
+    property bool isCharging: currentChargingCurrent > 100
+    
+    // Turn signal data from DBus
+    property bool leftTurnSignalActive: dashboardDataDBus.leftTurnSignal || false
+    property bool rightTurnSignalActive: dashboardDataDBus.rightTurnSignal || false
+    
+    // Turn signal blink state (for visual indication)
+    property bool turnSignalBlinkState: false
 
     // Animated properties for smooth transitions
     property real animatedSpeed: 0
@@ -230,6 +237,29 @@ Rectangle {
             console.log("  Raw CAN RPM:", dashboardDataCAN.currentRpm, "Filtered:", rectangle.currentRpm, "Animated:", Math.round(rectangle.animatedRpm))
             console.log("  Speed filter state:", rectangle.speedFilterState.toFixed(1), "derivative:", rectangle.speedDerivativeState.toFixed(1))
             console.log("  RPM filter state:", rectangle.rpmFilterState.toFixed(1), "derivative:", rectangle.rpmDerivativeState.toFixed(1))
+            console.log("  Battery:", rectangle.currentBatteryLevel + "%", "Charging current:", rectangle.currentChargingCurrent + "mA", "Is charging:", rectangle.isCharging)
+            console.log("  Turn signals - Left:", rectangle.leftTurnSignalActive, "Right:", rectangle.rightTurnSignalActive, "Blink state:", rectangle.turnSignalBlinkState)
+        }
+    }
+
+    // Turn signal blink timer
+    Timer {
+        id: turnSignalBlinkTimer
+        interval: 500  // 0.5 seconds = 500ms for typical turn signal blink rate
+        running: rectangle.leftTurnSignalActive || rectangle.rightTurnSignalActive
+        repeat: true
+        
+        onTriggered: {
+            rectangle.turnSignalBlinkState = !rectangle.turnSignalBlinkState
+            console.log("Turn signal blink:", rectangle.turnSignalBlinkState ? "ON" : "OFF", 
+                       "Left:", rectangle.leftTurnSignalActive, "Right:", rectangle.rightTurnSignalActive)
+        }
+        
+        // Reset blink state when no signals are active
+        onRunningChanged: {
+            if (!running) {
+                rectangle.turnSignalBlinkState = false
+            }
         }
     }
 
@@ -425,7 +455,7 @@ Rectangle {
             }
 
             Text {
-                id: text4
+                id: text3
                 width: 121
                 height: 48
                 color: "#6b4339"
@@ -461,27 +491,15 @@ Rectangle {
                 iconWidth: 24
                 iconHeight: 26
                 direction: "left"
-                iconColor: "#77C000"
-                hoverColor: "#88DD00"
-                pressedColor: "#66AA00"
-
-                MouseArea {
-                    anchors.fill: parent
-                    anchors.rightMargin: 0
-                    anchors.bottomMargin: 0
-                    anchors.leftMargin: 0
-                    anchors.topMargin: 0
-                    rotation: 180
-                    hoverEnabled: true
-
-                    onEntered: leftArrow.currentState = "hover"
-                    onExited: leftArrow.currentState = "normal"
-                    onPressed: leftArrow.currentState = "pressed"
-                    onReleased: leftArrow.currentState = "hover"
-
-                    onClicked: {
-                        // Left turn signal
-                        console.log("Left turn signal clicked")
+                // Always green color
+                iconColor: "#00FF00"
+                // Opacity blinking effect based on turn signal state
+                opacity: (rectangle.leftTurnSignalActive && rectangle.turnSignalBlinkState) ? 1.0 : 0.5
+                
+                Behavior on opacity {
+                    NumberAnimation {
+                        duration: 100
+                        easing.type: Easing.OutQuad
                     }
                 }
             }
@@ -516,22 +534,15 @@ Rectangle {
                 iconWidth: 24
                 iconHeight: 26
                 direction: "right"
-                iconColor: "#77C000"
-                hoverColor: "#88DD00"
-                pressedColor: "#66AA00"
-
-                MouseArea {
-                    anchors.fill: parent
-                    hoverEnabled: true
-
-                    onEntered: rightArrow.currentState = "hover"
-                    onExited: rightArrow.currentState = "normal"
-                    onPressed: rightArrow.currentState = "pressed"
-                    onReleased: rightArrow.currentState = "hover"
-
-                    onClicked: {
-                        // Right turn signal
-                        console.log("Right turn signal clicked")
+                // Always green color
+                iconColor: "#00FF00"
+                // Opacity blinking effect based on turn signal state
+                opacity: (rectangle.rightTurnSignalActive && rectangle.turnSignalBlinkState) ? 1.0 : 0.5
+                
+                Behavior on opacity {
+                    NumberAnimation {
+                        duration: 100
+                        easing.type: Easing.OutQuad
                     }
                 }
             }
