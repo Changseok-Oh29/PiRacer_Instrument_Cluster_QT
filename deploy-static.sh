@@ -4,7 +4,7 @@
 echo "=== Deploying Static Build to Raspberry Pi ==="
 
 PI_USER="seame2025"
-PI_HOST="192.168.86.75"
+PI_HOST="seameteam7"
 PI_HOME="/home/seame2025"
 
 # Copy the self-contained executable

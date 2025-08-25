@@ -14,6 +14,8 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
+HOSTNAME=seameteam7
+
 echo -e "${GREEN}=== Raspberry Pi Cross-Compilation Build Script ===${NC}"
 
 # Check if cross-compiler is installed
@@ -80,9 +82,9 @@ if [ $? -eq 0 ]; then
     echo -e "${GREEN}Build successful!${NC}"
     echo -e "${GREEN}Executable: $(pwd)/UntitledProjectApp${NC}"
     echo -e "${YELLOW}To deploy to Raspberry Pi:${NC}"
-    scp UntitledProjectApp seame2025@192.168.86.75:/home/seame2025/
-    scp ../rc_example.py seame2025@192.168.86.75:/home/seame2025/
-    scp ../dbussender.py seame2025@192.168.86.75:/home/seame2025/
+    scp UntitledProjectApp seame2025@${HOSTNAME}:/home/seame2025/
+    scp ../rc_example.py seame2025@${HOSTNAME}:/home/seame2025/
+    scp ../dbussender.py seame2025@${HOSTNAME}:/home/seame2025/
 else
     echo -e "${RED}Build failed!${NC}"
     exit 1
