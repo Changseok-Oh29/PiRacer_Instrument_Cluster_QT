@@ -60,7 +60,7 @@ graph TD
             H["<i class='fab fa-python'></i> Power Service"] -- Power Status --> I(("<i class='fas fa-route'></i> D-Bus"))
         end
         
-        G["<i class='fab fa-raspberry-pi'></i> <b>HMI Application</b> (GUI)"]
+        G["<i class='fab fa-raspberry-pi'></i> <b>Qt Application</b> (GUI)"]
         J["<i class='fas fa-tv'></i> Dashboard Display"]
 
         B -.-> |"<i class='fas fa-file-upload'></i> scp"| G
