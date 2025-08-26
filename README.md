@@ -57,7 +57,7 @@ graph TD
         subgraph "Background Services"
             direction LR
             N["<i class='fab fa-python'></i> Input Service"] -- Controller Events --> I
-            H["<i class='fab fa-python'></i> Power Service"] -- Power Status --> I{{"<i class='fas fa-database'></i> D-Bus"}}
+            H["<i class='fab fa-python'></i> Power Service"] -- Power Status --> I["<i class='fas fa-route'></i> D-Bus"]
         end
         
         G["<i class='fab fa-raspberry-pi'></i> <b>HMI Application</b> (GUI)"]
@@ -72,10 +72,10 @@ graph TD
     end
 
     %% Styling
-    classDef dev fill:#bbdefb,stroke:#1976d2,stroke-width:2px,color:#212121;
-    classDef hardware fill:#ffcc80,stroke:#e65100,stroke-width:2px,color:#212121;
-    classDef service fill:#c8e6c9,stroke:#388e3c,stroke-width:2px,color:#212121;
-    classDef app fill:#81c784,stroke:#1b5e20,stroke-width:3px,color:#fafafa;
+    classDef dev fill:#ede7f6,stroke:#5e35b1,stroke-width:2px,color:#212121;
+    classDef hardware fill:#eceff1,stroke:#546e7a,stroke-width:2px,color:#212121;
+    classDef service fill:#e0f7fa,stroke:#00838f,stroke-width:2px,color:#212121;
+    classDef app fill:#fff8e1,stroke:#fbc02d,stroke-width:3px,color:#424242;
 
     class A,B dev;
     class C,D,E,F,K,L,M hardware;
