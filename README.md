@@ -35,7 +35,7 @@ A sophisticated real-time automotive instrument cluster application built with Q
 ## Architecture
 
 ### System Architecture
-
+'''mermaid
 graph TD
     subgraph "Host PC"
         direction LR
@@ -80,9 +80,10 @@ graph TD
     class C,D,E,F,K,L,M hardware;
     class H,I,N service;
     class G,J app;
+'''
 
 ### Full-Stack Software Architecture
-
+'''mermaid
 graph TB
     %% Application Startup Layer
     subgraph "Application Startup"
@@ -209,6 +210,7 @@ graph TB
     class can_hardware,piracer_hw,system_dbus,gamepad hardwareLayer
     class weather_api externalLayer
     class cmake_build,deploy_scripts buildLayer
+'''
 
 ### Data Flow
 1. **CAN Bus**: `canreceiver.cpp` → `DashboardDataCAN.qml` → `Screen01.qml`
