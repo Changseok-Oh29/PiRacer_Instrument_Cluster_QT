@@ -57,7 +57,7 @@ graph TD
         subgraph "Background Services"
             direction LR
             N["<i class='fab fa-python'></i> Input Service"] -- Controller Events --> I
-            H["<i class='fab fa-python'></i> Power Service"] -- Power Status --> I{{"<i class='fas fa-route'></i> D-Bus"}}
+            H["<i class='fab fa-python'></i> Power Service"] -- Power Status --> I(("<i class='fas fa-route'></i> D-Bus"))
         end
         
         G["<i class='fab fa-raspberry-pi'></i> <b>HMI Application</b> (GUI)"]
