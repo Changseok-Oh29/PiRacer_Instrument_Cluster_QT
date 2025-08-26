@@ -35,6 +35,7 @@ A sophisticated real-time automotive instrument cluster application built with Q
 ## Architecture
 
 ### System Architecture
+
 graph TD
     subgraph "Host PC"
         direction LR
@@ -81,6 +82,7 @@ graph TD
     class G,J app;
 
 ### Full-Stack Software Architecture
+
 graph TB
     %% Application Startup Layer
     subgraph "Application Startup"
