@@ -34,23 +34,179 @@ A sophisticated real-time automotive instrument cluster application built with Q
 
 ## Architecture
 
-### Qt QML Application Structure
-```
-├── main.qml              # Application entry point
-├── content/
-│   ├── App.qml           # Main application window
-│   ├── Screen01.qml      # Primary dashboard screen
-│   ├── BatteryBar.ui.qml # Battery level indicator
-│   ├── DashboardDataCAN.qml   # CAN bus data management
-│   ├── DashboardDataDBus.qml  # DBus data management
-│   ├── WeatherData.qml   # Weather data integration
-│   └── VectorIcon.qml    # Interactive vector icons
-├── src/
-│   ├── main.cpp          # C++ application entry
-│   ├── canreceiver.h/cpp # CAN bus communication
-│   └── dbusreceiver.h/cpp# DBus communication
-└── imports/              # Custom QML modules
-```
+### System Architecture
+graph TD
+    subgraph "Host PC"
+        direction LR
+        A["<i class='fas fa-laptop-code'></i> Qt Creator Project"] -- Cross-Compile --> B["<i class='fas fa-cogs'></i> Executable File"]
+    end
+
+    subgraph "Hardware"
+        direction LR
+        C["<i class='fas fa-gamepad'></i> Wireless Controller"] -- "2.4GHz RF" --> M["<i class='fab fa-usb'></i> USB Dongle"]
+        D["<i class='fas fa-tachometer-alt'></i> Speed Sensor"] -- Interrupt Pulse --> E["<i class='fab fa-arduino'></i> Arduino"]
+        E -- "<i class='fas fa-microchip'></i> SPI" --> K["MCP2515<br/>(CAN Controller)"]
+        K -- "CAN Frame (Speed Data)" --> F["<i class='fas fa-bus'></i> CAN Bus"]
+        L["<i class='fas fa-battery-half'></i> INA219<br/>(Battery Monitor)"]
+    end
+
+    subgraph "Raspberry Pi (Target PC)"
+        direction TB
+        subgraph "Background Services"
+            direction LR
+            N["<i class='fab fa-python'></i> Input Service"] -- Controller Events --> I
+            H["<i class='fab fa-python'></i> Power Service"] -- Power Status --> I{{"<i class='fas fa-database'></i> D-Bus"}}
+        end
+        
+        G["<i class='fab fa-raspberry-pi'></i> <b>HMI Application</b> (GUI)"]
+        J["<i class='fas fa-tv'></i> Dashboard Display"]
+
+        B -.-> |"<i class='fas fa-file-upload'></i> scp"| G
+        M -- "USB HID Events" --> N
+        L -- "I2C Bus (Power Data)" --> H
+        F -- "<i class='fas fa-network-wired'></i> SocketCAN API" --> G
+        I -- "D-Bus Signal Subscription" --> G
+        G -- Renders --> J
+    end
+
+    %% Styling
+    classDef dev fill:#bbdefb,stroke:#1976d2,stroke-width:2px,color:#212121;
+    classDef hardware fill:#ffcc80,stroke:#e65100,stroke-width:2px,color:#212121;
+    classDef service fill:#c8e6c9,stroke:#388e3c,stroke-width:2px,color:#212121;
+    classDef app fill:#81c784,stroke:#1b5e20,stroke-width:3px,color:#fafafa;
+
+    class A,B dev;
+    class C,D,E,F,K,L,M hardware;
+    class H,I,N service;
+    class G,J app;
+
+### Full-Stack Software Architecture
+graph TB
+    %% Application Startup Layer
+    subgraph "Application Startup"
+        main_cpp[main.cpp]
+        python_processes[Python Process Management]
+    end
+    
+    %% QML UI Layer
+    subgraph "QML User Interface"
+        main_qml[main.qml]
+        app_qml[App.qml]
+        screen01[Screen01.qml]
+    end
+    
+    %% Data Management Layer  
+    subgraph "Data Management"
+        can_data[DashboardDataCAN.qml]
+        dbus_data[DashboardDataDBus.qml]
+        weather_data[WeatherData.qml]
+    end
+    
+    %% UI Components Layer
+    subgraph "UI Components"
+        vector_icon[VectorIcon.qml]
+        battery_ui[BatteryBar.ui.qml]
+        speed_ui[Speed Display]
+    end
+    
+    %% C++ Backend Layer
+    subgraph "C++ Backend Services"
+        can_receiver[CanReceiver.cpp/h]
+        dbus_receiver[DBusReceiver.cpp/h]
+    end
+    
+    %% Python Services Layer
+    subgraph "Python Services"
+        dbus_sender[dbussender.py]
+        rc_controller[rc_example.py]
+    end
+    
+    %% Hardware/System Layer
+    subgraph "Hardware & System"
+        can_hardware[CAN Bus Hardware]
+        piracer_hw[PiRacer Hardware]
+        system_dbus[System DBus]
+        gamepad[ShanWan Gamepad]
+    end
+    
+    %% External Services
+    subgraph "External Services"
+        weather_api[Weather APIs]
+    end
+    
+    %% Build & Deploy
+    subgraph "Build System"
+        cmake_build[CMakeLists.txt]
+        deploy_scripts[build-native.sh<br/>build-raspi.sh]
+    end
+    
+    %% Primary Application Flow
+    main_cpp --> python_processes
+    main_cpp --> main_qml
+    main_qml --> app_qml
+    app_qml --> screen01
+    
+    %% Data Flow Connections
+    screen01 --> can_data
+    screen01 --> dbus_data
+    screen01 --> weather_data
+    screen01 --> vector_icon
+    screen01 --> battery_ui
+    screen01 --> speed_ui
+    
+    %% Backend Integration
+    can_data --> can_receiver
+    dbus_data --> dbus_receiver
+    
+    %% C++ Context Registration
+    main_cpp -.-> can_receiver
+    main_cpp -.-> dbus_receiver
+    
+    %% Python Service Connections
+    python_processes --> dbus_sender
+    python_processes --> rc_controller
+    
+    %% Hardware Interface
+    can_receiver <--> can_hardware
+    dbus_receiver <--> system_dbus
+    dbus_sender <--> system_dbus
+    dbus_sender <--> piracer_hw
+    rc_controller <--> gamepad
+    rc_controller <--> piracer_hw
+    rc_controller --> system_dbus
+    
+    %% External API
+    weather_data <--> weather_api
+    
+    %% Build Dependencies
+    cmake_build --> deploy_scripts
+    deploy_scripts --> main_cpp
+    
+    %% UI Component Dependencies
+    vector_icon --> dbus_data
+    battery_ui --> dbus_data
+    speed_ui --> can_data
+    
+    %% Styling
+    classDef startupLayer fill:#ffebee,stroke:#c62828,stroke-width:2px
+    classDef uiLayer fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px
+    classDef dataLayer fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
+    classDef componentLayer fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    classDef backendLayer fill:#fff3e0,stroke:#ef6c00,stroke-width:2px
+    classDef pythonLayer fill:#e0f2f1,stroke:#00695c,stroke-width:2px
+    classDef hardwareLayer fill:#fce4ec,stroke:#ad1457,stroke-width:2px
+    classDef externalLayer fill:#f1f8e9,stroke:#558b2f,stroke-width:2px
+    classDef buildLayer fill:#e8eaf6,stroke:#3f51b5,stroke-width:2px
+    
+    class main_cpp,python_processes startupLayer
+    class main_qml,app_qml,screen01 uiLayer
+    class can_data,dbus_data,weather_data dataLayer
+    class vector_icon,battery_ui,speed_ui componentLayer
+    class can_receiver,dbus_receiver backendLayer
+    class dbus_sender,rc_controller pythonLayer
+    class can_hardware,piracer_hw,system_dbus,gamepad hardwareLayer
+    class weather_api externalLayer
+    class cmake_build,deploy_scripts buildLayer
 
 ### Data Flow
 1. **CAN Bus**: `canreceiver.cpp` → `DashboardDataCAN.qml` → `Screen01.qml`
