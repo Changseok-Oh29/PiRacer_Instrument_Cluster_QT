@@ -48,7 +48,7 @@ graph TD
         C["<i class='fas fa-gamepad'></i> Wireless Controller"] -- "2.4GHz RF" --> M["<i class='fab fa-usb'></i> USB Dongle"]
         D["<i class='fas fa-tachometer-alt'></i> Speed Sensor"] -- Interrupt Pulse --> E["<i class='fab fa-arduino'></i> Arduino"]
         E -- "<i class='fas fa-microchip'></i> SPI" --> K["MCP2515<br/>(CAN Controller)"]
-        K -- "CAN Frame (Speed Data)" --> F["<i class='fas fa-bus'></i> CAN Bus"]
+        K -- "CAN Frame (Speed Data)" --> F(("<i class='fas fa-bus'></i> CAN Bus"))
         L["<i class='fas fa-battery-half'></i> INA219<br/>(Battery Monitor)"]
     end
 
@@ -57,7 +57,7 @@ graph TD
         subgraph "Background Services"
             direction LR
             N["<i class='fab fa-python'></i> Input Service"] -- Controller Events --> I
-            H["<i class='fab fa-python'></i> Power Service"] -- Power Status --> I["<i class='fas fa-route'></i> D-Bus"]
+            H["<i class='fab fa-python'></i> Power Service"] -- Power Status --> I{{"<i class='fas fa-route'></i> D-Bus"}}
         end
         
         G["<i class='fab fa-raspberry-pi'></i> <b>HMI Application</b> (GUI)"]
