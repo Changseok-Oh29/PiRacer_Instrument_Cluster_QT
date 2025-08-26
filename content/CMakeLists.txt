@@ -9,15 +9,11 @@ qt6_add_qml_module(content
     VERSION 1.0
     NO_PLUGIN
     QML_FILES
-        VectorIconExample.qml
         App.qml
-        DashboardData.qml
         DashboardDataCAN.qml
         DashboardDataDBus.qml
         VectorIcon.qml
-        DashboardLogic.qml
         Screen01.qml
-        GearIndicator.qml
         BatteryBar.ui.qml
         WeatherData.qml
     RESOURCES
