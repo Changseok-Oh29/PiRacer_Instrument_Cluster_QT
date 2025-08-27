@@ -1,36 +1,35 @@
-# PiRacer Instrument Cluster QT
+# DES Project - Instrument Cluster
 
-A sophisticated real-time automotive instrument cluster application built with Qt QML for the PiRacer platform. This project provides a full-featured dashboard display with CAN bus integration, DBus communication, real-time weather data, and advanced signal filtering.
+## Introduction
+The Instrument Cluster is a project that displays real-time vehicle data on a digital dashboard, utilizing a Raspberry Pi for processing and visualization.
+
+Speed data is transmitted to the Raspberry Pi directly via the CAN bus. Concurrently, battery-related data is received via I2C communication and then integrated with the graphical user interface (GUI) through the D-Bus messaging system. The entire GUI was developed as a Qt application to ensure a responsive and real-time display.
 
 ## Features
 
 ### 🚗 Core Dashboard Functionality
 - **Real-time Speed Display**: Shows vehicle speed in cm/s with smooth animations
-- **RPM Monitoring**: Engine RPM display with color-coded indicators
-- **CAN Bus Integration**: Reads real vehicle data from CAN bus interface
+- **RPM Monitoring**: Engine RPM display
+- **CAN Integration**: Reads real vehicle data from CAN interface
 - **One Euro Filtering**: Advanced signal smoothing for stable speed/RPM readings
 - **Turn Signal Indicators**: Interactive left/right turn signal controls
 
 ### 🔋 Battery & Power Management
 - **Battery Level Display**: Visual battery bar with color-coded states (critical, low, medium, normal)
 - **Charging Status**: Real-time charging current monitoring via DBus
-- **Charging Indicator**: Visual charging icon when current exceeds threshold (>1000mA)
+- **Charging Indicator**: Visual charging icon when current exceeds threshold (>100mA)
 
 ### 🌤️ Weather Integration
 - **Real-time Weather**: Current temperature and weather conditions
 - **Location Detection**: IP-based geolocation with GPS fallback
 - **Weather Icons**: Dynamic weather icons based on current conditions
-- **Multiple Locations**: Click to cycle through different locations
 
 ### 🎮 Input & Control
 - **Gamepad Support**: ShanWan gamepad integration for PiRacer control
-- **Interactive UI**: Click-to-cycle weather locations
-- **Escape Key**: Exit application with ESC key
 
 ### 📡 Communication
-- **CAN Bus Support**: Linux SocketCAN integration for real vehicle data
+- **CAN Support**: Linux SocketCAN integration for real vehicle data
 - **DBus Interface**: Communication with PiRacer services
-- **Dual Mode Operation**: Switches between real CAN data and simulation mode
 
 ## Architecture
 
@@ -214,7 +213,7 @@ graph TB
 ```
 
 ### Data Flow
-1. **CAN Bus**: `canreceiver.cpp` → `DashboardDataCAN.qml` → `Screen01.qml`
+1. **CAN**: `canreceiver.cpp` → `DashboardDataCAN.qml` → `Screen01.qml`
 2. **DBus**: `dbusreceiver.cpp` → `DashboardDataDBus.qml` → `Screen01.qml`
 3. **Weather**: `WeatherData.qml` → `Screen01.qml`
 4. **Filtering**: Raw data → One Euro Filter → Smooth animations
@@ -229,14 +228,13 @@ graph TB
 
 ### Backend
 - **C++**: Core application logic
-- **Linux SocketCAN**: CAN bus communication
-- **Qt DBus**: Inter-process communication
+- **Linux SocketCAN**: CAN communication
+- **DBus**: Inter-process communication (DBus)
 - **Python**: PiRacer gamepad control
 
 ### Hardware Integration
 - **CAN Interface**: `can10` interface for vehicle data
 - **ShanWan Gamepad**: Vehicle control input
-- **PiRacer Platform**: Standard or Pro variants
 
 ## Signal Processing
 
@@ -260,15 +258,15 @@ The application implements a sophisticated One Euro Filter for signal smoothing:
 
 ### Dashboard Layout
 - **Central Speed Display**: Large, prominent speed reading
-- **RPM Indicator**: Side-mounted RPM display with gear icon
+- **RPM Indicator**: Side-mounted RPM display
 - **Battery Bar**: Bottom-mounted battery level indicator
 - **Weather Widget**: Top-right weather and time display
 - **Status Indicators**: CAN connection and charging status
 
 ### Visual Design
-- **Dark Theme**: Automotive-grade dark interface
+- **Dark Theme**
 - **Color Coding**:
-  - Green (#77C000): Normal status, turn signals
+  - Green (#00FF00): Normal status, turn signals
   - Red (#F44336): Critical battery level
   - Orange (#FF9800): Low battery warning
   - Yellow (#FFEB3B): Medium battery level
@@ -276,8 +274,7 @@ The application implements a sophisticated One Euro Filter for signal smoothing:
 - **Responsive Layout**: Scales for different screen sizes
 
 ### Interactive Elements
-- **Turn Signals**: Click left/right arrows for turn indicators
-- **Weather Cycling**: Click weather widget to refresh/cycle locations
+- **Turn Signals**: Pressing the L1 and R1 buttons on the controller activates the left and right turn signals, respectively. The signal is deactivated by either pressing the same button again or by steering in the opposite direction.
 - **Battery Monitoring**: Real-time charging status display
 
 ## Configuration Files
@@ -321,62 +318,13 @@ ID: 0x123 (8 bytes)
 ### DBus Message Format
 ```json
 {
-  "battery_capacity": 85.5,
-  "charging_current": 1250.0
+    "battery_capacity": 85.5,
+    "charging_current": 1250.0,
+    "left_turn_signal": false,
+    "right_turn_signal": true
 }
 ```
 
-## Development Features
-
-### Debug Output
-- **Timestamped Logging**: All operations include precise timestamps
-- **Filter State Monitoring**: Real-time filter coefficient display
-- **Connection Status**: Detailed CAN/DBus connection logging
-- **Performance Metrics**: Signal processing timing information
-
-### Testing Support
-- **Simulation Mode**: Works without physical hardware
-- **Test Scripts**: CAN data simulation (`test_can_data.sh`)
-- **DBus Testing**: Battery/charging simulation scripts
-- **Mock Data**: Realistic simulated vehicle parameters
-
-### Error Handling
-- **Graceful Degradation**: Falls back to simulation when hardware unavailable
-- **Connection Recovery**: Automatic reconnection attempts
-- **Input Validation**: Robust data parsing and validation
-- **Resource Management**: Proper cleanup of system resources
-
-## Performance Characteristics
-
-### Real-time Requirements
-- **Update Rate**: 10Hz CAN data sampling
-- **Filter Latency**: <100ms signal delay
-- **UI Refresh**: 60 FPS smooth animations
-- **Memory Usage**: Optimized for embedded systems
-
-### System Requirements
-- **Qt Version**: 6.4 or higher
-- **Platform**: Linux (Raspberry Pi optimized)
-- **CAN Interface**: SocketCAN compatible
-- **Python**: 3.x for gamepad support
-- **Memory**: 512MB RAM minimum
-- **Storage**: 100MB application size
-
-## Future Enhancements
-
-### Planned Features
-- **GPS Navigation**: Route display and turn-by-turn directions
-- **Multiple Screens**: Additional dashboard views
-- **Data Logging**: Historical driving data storage
-- **Customization**: User-configurable layouts and themes
-- **Voice Integration**: Audio feedback and commands
-- **Mobile App**: Companion smartphone application
-
-### Hardware Expansion
-- **Additional Sensors**: Temperature, pressure monitoring
-- **Camera Integration**: Rear-view camera display
-- **Audio System**: Music and radio integration
-- **Wireless Connectivity**: WiFi and Bluetooth support
 
 ## License
 
