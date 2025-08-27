@@ -264,7 +264,7 @@ The application implements a sophisticated One Euro Filter for signal smoothing:
 - **Status Indicators**: CAN connection and charging status
 
 ### Visual Design
-- **Dark Theme**: Automotive-grade dark interface
+- **Dark Theme**
 - **Color Coding**:
   - Green (#00FF00): Normal status, turn signals
   - Red (#F44336): Critical battery level
@@ -324,22 +324,6 @@ ID: 0x123 (8 bytes)
     "right_turn_signal": true
 }
 ```
-
-## Performance Characteristics
-
-### Real-time Requirements
-- **Update Rate**: 10Hz CAN data sampling
-- **Filter Latency**: <100ms signal delay
-- **UI Refresh**: 60 FPS smooth animations
-- **Memory Usage**: Optimized for embedded systems
-
-### System Requirements
-- **Qt Version**: 6.4 or higher
-- **Platform**: Linux (Raspberry Pi optimized)
-- **CAN Interface**: SocketCAN compatible
-- **Python**: 3.x for gamepad support
-- **Memory**: 512MB RAM minimum
-- **Storage**: 100MB application size
 
 
 ## License
