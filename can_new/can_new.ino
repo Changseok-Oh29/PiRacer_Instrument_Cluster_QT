@@ -5,7 +5,7 @@
 #include <mcp2515_defs.h>
 
 #define SENSOR_PIN 2
-#define SAMPLE_PERIOD 300 //0.5sec
+#define SAMPLE_PERIOD 300 //0.3sec
 
 const int HOLES_PER_REV = 20;
 const float WHEEL_DIAMETER_M = 0.067;
