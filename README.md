@@ -213,8 +213,8 @@ graph TB
 ```
 
 ### Data Flow
-1. **CAN**: `canreceiver.cpp` → `DashboardDataCAN.qml` → `Screen01.qml`
-2. **DBus**: `dbusreceiver.cpp` → `DashboardDataDBus.qml` → `Screen01.qml`
+1. **CAN**: `can_new.ino` → `canreceiver.cpp` → `DashboardDataCAN.qml` → `Screen01.qml`
+2. **DBus**: `dbussender.py` → `dbusreceiver.cpp` → `DashboardDataDBus.qml` → `Screen01.qml`
 3. **Weather**: `WeatherData.qml` → `Screen01.qml`
 4. **Filtering**: Raw data → One Euro Filter → Smooth animations
 

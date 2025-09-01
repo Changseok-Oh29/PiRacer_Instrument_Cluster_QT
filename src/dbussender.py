@@ -60,14 +60,8 @@ class CarInformationService(dbus.service.Object):
     def setBattery(self, battery_level):
         self.battery_level = float(battery_level)
         print(f"[SERVICE] {datetime.datetime.now().strftime('%H:%M:%S.%f')[:-3]} 🔋 Battery level received: {self.battery_level:.1f}%")
-
         # Emit signal for Qt to receive
         self._emit_data_signal()
-
-    @dbus.service.method("org.team7.IC.Interface", in_signature='', out_signature='d')
-    def getBattery(self):
-        print(f"[SERVICE] {datetime.datetime.now().strftime('%H:%M:%S.%f')[:-3]} 📊 Battery level requested: {self.battery_level:.1f}%")
-        return self.battery_level
 
     @dbus.service.method("org.team7.IC.Interface", in_signature='bb', out_signature='')
     def setTurnSignals(self, left_active, right_active):
@@ -76,12 +70,6 @@ class CarInformationService(dbus.service.Object):
         self.right_turn_signal = bool(right_active)
         print(f"[SERVICE] {datetime.datetime.now().strftime('%H:%M:%S.%f')[:-3]} 🔄 Turn signals set - Left: {self.left_turn_signal}, Right: {self.right_turn_signal}")
         self._emit_data_signal()
-
-    @dbus.service.method("org.team7.IC.Interface", in_signature='', out_signature='bb')
-    def getTurnSignals(self):
-        """Get current turn signal states"""
-        print(f"[SERVICE] {datetime.datetime.now().strftime('%H:%M:%S.%f')[:-3]} 📊 Turn signals requested - Left: {self.left_turn_signal}, Right: {self.right_turn_signal}")
-        return self.left_turn_signal, self.right_turn_signal
 
     def _emit_data_signal(self):
         """Emit signal with battery, charging and turn signal data"""
@@ -94,7 +82,6 @@ class CarInformationService(dbus.service.Object):
         json_data = json.dumps(data)
         print(f"[TEST_SERVICE] {datetime.datetime.now().strftime('%H:%M:%S.%f')[:-3]} 📤 Emitting DataReceived signal: {json_data}")
         self.DataReceived(json_data)
-
 
     @dbus.service.signal("org.team7.IC.Interface", signature='s')
     def DataReceived(self, data_json):
