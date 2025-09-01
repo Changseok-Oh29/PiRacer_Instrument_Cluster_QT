@@ -30,11 +30,11 @@ Rectangle {
 
     // Charging status - green when current > 100mA (lowered threshold), invisible otherwise
     property bool isCharging: currentChargingCurrent > 100
-    
+
     // Turn signal data from DBus
     property bool leftTurnSignalActive: dashboardDataDBus.leftTurnSignal || false
     property bool rightTurnSignalActive: dashboardDataDBus.rightTurnSignal || false
-    
+
     // Turn signal blink state (for visual indication)
     property bool turnSignalBlinkState: false
 
@@ -248,13 +248,13 @@ Rectangle {
         interval: 500  // 0.5 seconds = 500ms for typical turn signal blink rate
         running: rectangle.leftTurnSignalActive || rectangle.rightTurnSignalActive
         repeat: true
-        
+
         onTriggered: {
             rectangle.turnSignalBlinkState = !rectangle.turnSignalBlinkState
-            console.log("Turn signal blink:", rectangle.turnSignalBlinkState ? "ON" : "OFF", 
+            console.log("Turn signal blink:", rectangle.turnSignalBlinkState ? "ON" : "OFF",
                        "Left:", rectangle.leftTurnSignalActive, "Right:", rectangle.rightTurnSignalActive)
         }
-        
+
         // Reset blink state when no signals are active
         onRunningChanged: {
             if (!running) {
@@ -379,7 +379,7 @@ Rectangle {
                     width: parent.width
                     height: parent.height
                     onClicked: {
-                        weatherData.nextLocation() // Cycle through locations
+                        weatherData.refreshLocation() // Cycle through locations
                     }
                     hoverEnabled: true
 
@@ -495,7 +495,7 @@ Rectangle {
                 iconColor: "#00FF00"
                 // Opacity blinking effect based on turn signal state
                 opacity: (rectangle.leftTurnSignalActive && rectangle.turnSignalBlinkState) ? 1.0 : 0.5
-                
+
                 Behavior on opacity {
                     NumberAnimation {
                         duration: 100
@@ -538,7 +538,7 @@ Rectangle {
                 iconColor: "#00FF00"
                 // Opacity blinking effect based on turn signal state
                 opacity: (rectangle.rightTurnSignalActive && rectangle.turnSignalBlinkState) ? 1.0 : 0.5
-                
+
                 Behavior on opacity {
                     NumberAnimation {
                         duration: 100

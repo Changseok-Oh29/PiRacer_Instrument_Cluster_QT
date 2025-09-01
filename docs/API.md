@@ -153,12 +153,12 @@ property real longitude: 0.0          // GPS longitude
 #### Methods
 
 ```qml
-function enableGeolocation()           // Enable GPS positioning
-function disableGeolocation()          // Disable GPS positioning
-function useIPGeolocation()           // Use IP-based location
-function refreshWeather()             // Refresh weather data
-function nextLocation()               // Cycle through locations
-function setLocation(lat, lon)        // Set manual coordinates
+function enableGeolocation()            // Enable GPS positioning
+function disableGeolocation()           // Disable GPS positioning
+function useIPGeolocation()             // Use IP-based location
+function refreshWeather()               // Refresh weather data
+function refreshLocation()              // Fetch IP data again to refresh weather data
+function setLocation(lat, lon)          // Set manual coordinates
 ```
 
 #### Weather API Integration
