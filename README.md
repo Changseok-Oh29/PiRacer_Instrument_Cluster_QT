@@ -5,6 +5,9 @@ The Instrument Cluster is a project that displays real-time vehicle data on a di
 
 Speed data is transmitted to the Raspberry Pi directly via the CAN bus. Concurrently, battery-related data is received via I2C communication and then integrated with the graphical user interface (GUI) through the D-Bus messaging system. The entire GUI was developed as a Qt application to ensure a responsive and real-time display.
 
+## Example
+![example](/images/output.gif)
+
 ## Features
 
 ### 🚗 Core Dashboard Functionality
