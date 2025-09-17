@@ -101,23 +101,10 @@ endif()
 # Include QML modules
 include(${CMAKE_CURRENT_SOURCE_DIR}/qmlmodules)
 
-# Ensure QML modules are properly registered for cross-compilation
-if(CMAKE_CROSSCOMPILING)
-    # Force static QML plugin linking for cross-compilation
-    set_target_properties(UntitledProjectApp PROPERTIES
-        QT_QML_MODULE_URI_OVERRIDE "Main"
-    )
-    
-    # Ensure all QML modules are linked statically
-    qt6_import_qml_plugins(UntitledProjectApp)
-endif()
-
 # Installation settings for Raspberry Pi
 if(CMAKE_CROSSCOMPILING)
     install(TARGETS UntitledProjectApp
         RUNTIME DESTINATION bin
     )
     
-    # For static builds, only the executable is needed
-    # All QML modules and assets are embedded
 endif()
