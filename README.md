@@ -224,9 +224,9 @@ graph TB
 ```
 
 ### Data Flow
+
 1. **CAN**: `can_new.ino` → `canreceiver.cpp` → `DashboardDataCAN.qml` → `Screen01.qml`
 2. **DBus**: `dbussender.py` → `dbusreceiver.cpp` → `DashboardDataDBus.qml` → `Screen01.qml`
-
 
 3. **Weather**: `WeatherData.qml` → `Screen01.qml`
 4. **Filtering**: Raw data → One Euro Filter → Smooth animations
@@ -357,4 +357,7 @@ This project is licensed under the Qt Commercial License or GPL-3.0. See individ
 
 ## Credits
 
-Developed for the PiRacer platform using Qt Design Studio and Qt Creator. Weather data provided by Open-Meteo API.
+The original UI design was created by [Author Name](https://www.figma.com/@ryanhuang) and published on [Figma Community](https://www.figma.com/community/file/1111127551677179703/electric-car-dashboard).
+This project uses a modified version of that design.
+
+Licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
